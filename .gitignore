@@ -1,0 +1,34 @@
+# Godot generated files
+.godot/
+.import/
+export.cfg
+export_credentials.cfg
+
+# Local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python bridge
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Runtime data and logs
+session-log*.jsonl
+logs/
+local-memory/
+
+# Generated build outputs
+builds/
+exports/
+*.zip
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
