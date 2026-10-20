@@ -1,0 +1,21 @@
+{
+  "grid_shape": [
+    159,
+    273
+  ],
+  "triangles": 85952,
+  "no_missing_heights": true,
+  "source_grid_heights_preserved_exactly": true,
+  "core_length_m": 804.672,
+  "vegetation_counts": {
+    "palm": 1261,
+    "pisonia": 1314,
+    "shrub": 845,
+    "fern": 813
+  },
+  "spawn_ground_height_m": 0.2515442371368408,
+  "forest_crossing_distance_m": 102.02427057258319,
+  "north_water_depth_50m": 0.01993940956890583,
+  "south_water_depth_50m": 0.6497616767883301,
+  "notes": "Generated source regions remain authored estimates. Section has no AI companion or crafting integration."
+}

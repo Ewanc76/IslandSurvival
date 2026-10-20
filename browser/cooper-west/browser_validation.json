@@ -1,0 +1,32 @@
+{
+  "desktopMovementMetres": 3.5602600000020175,
+  "mobileControlMovementMetres": 1.8931868421034324,
+  "desktopState": {
+    "x": 4557.134859086014,
+    "y": 1.9392674563219057,
+    "z": 1706.701248596888,
+    "ground": 0.2592674563219056,
+    "edge": false,
+    "yaw": 0,
+    "pitch": -0.04,
+    "isAerial": false,
+    "fps": 60,
+    "drawCalls": 6,
+    "triangles": 576482
+  },
+  "mobileState": {
+    "x": 4557.134859086014,
+    "y": 2.0296931065031947,
+    "z": 1796.8323323273678,
+    "ground": 0.3496931065031947,
+    "edge": false,
+    "yaw": 0,
+    "pitch": -0.035,
+    "isAerial": false,
+    "fps": 60,
+    "drawCalls": 6,
+    "triangles": 576482
+  },
+  "pageErrors": [],
+  "notes": "Headless Edge desktop/mobile emulation. Physical Android performance is not measured."
+}
