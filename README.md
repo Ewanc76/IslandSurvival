@@ -1,5 +1,11 @@
 # Island Survival
 
+**Current shared entry:** [START-HERE.md](START-HERE.md) — PC/Android workflow, current Cooper West browser source, playtest and asset links.
+
+The runnable browser terrain preview now lives in `browser/cooper-west/`. The older Godot status below is retained as historical context; Mobile Test 08 and the complete Godot source have not been imported.
+
+Local checks: `npm test`, `npm run build`. Local hub: `npm start` (port 8790). GitHub Actions tests and publishes the playtest after changes reach main.
+
 A Godot survival game built around physical crafting and an AI teammate sharing the same world and rules.
 
 Find the right stone, strike it in the right place, choose a suitable branch, carve it, bind the pieces, and test the resulting tool. Materials and handling should matter.

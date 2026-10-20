@@ -1,3 +1,11 @@
+# Current shared development — 20 October 2026
+
+Read [START-HERE.md](../START-HERE.md) first. It is the short, current PC/Android handoff. The standalone Cooper West terrain preview has source, height data and tests in this repo. User PC playtest passed (60 FPS shown); physical Android performance remains pending. Mobile Test 08 source and full Godot game source are not imported.
+
+The text below is historical Godot continuity from 11 October and must not be treated as the current browser status.
+
+---
+
 # Island Survival - continuity and working plan
 
 Updated: 11 October 2026, America/New_York. This is the project entry point for future sessions. Update this document as decisions and test results change.

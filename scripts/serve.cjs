@@ -1,0 +1,4 @@
+require('./build-site.cjs');const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'../_site'),port=Number(process.env.PORT)||8790;
+const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.f32':'application/octet-stream'};
+http.createServer((req,res)=>{let file;try{file=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));}catch{res.writeHead(400).end();return;}if(file!==root&&!file.startsWith(root+path.sep)){res.writeHead(403).end();return;}if(fs.existsSync(file)&&fs.statSync(file).isDirectory())file=path.join(file,'index.html');fs.stat(file,(e,s)=>{if(e||!s.isFile()){res.writeHead(404).end();return;}res.setHeader('Content-Type',types[path.extname(file)]||'application/octet-stream');fs.createReadStream(file).pipe(res);});}).listen(port,'0.0.0.0',()=>console.log('Island Survival hub: http://localhost:'+port));
