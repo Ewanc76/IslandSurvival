@@ -25,10 +25,10 @@ void vertex() {
 
 void fragment() {
     float scene_depth = texture(depth_texture, SCREEN_UV).r;
-    vec3 floor_view = (INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, scene_depth, 1.0)).xyz;
-    vec3 surface_view = (INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, FRAGCOORD.z, 1.0)).xyz;
-    float floor_distance = -floor_view.z / max(abs(floor_view.z / floor_view.z), 0.0001);
-    float surface_distance = -surface_view.z / max(abs(surface_view.z / surface_view.z), 0.0001);
+    vec3 floor_view = (INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, scene_depth * 2.0 - 1.0, 1.0)).xyz;
+    vec3 surface_view = (INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, FRAGCOORD.z * 2.0 - 1.0, 1.0)).xyz;
+    float floor_distance = -floor_view.z;
+    float surface_distance = -surface_view.z;
     float water_depth = max(floor_distance - surface_distance, 0.0);
     float deep_factor = smoothstep(0.0, depth_fade_distance, water_depth);
     vec4 tint = mix(shallow_color, deep_color, deep_factor);
