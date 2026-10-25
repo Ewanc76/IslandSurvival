@@ -17,3 +17,9 @@ test('living models sit on sampled terrain, retain picking bodies and obey mesh 
  const detailedFronds=v.meshes.fronds.count;v.sync({x:-10000,z:-10000});assert(v.meshes.fronds.count<detailedFronds);v.update({x:-10000,z:-10000},.1);assert.equal(v.meshes.body.count,0);
  assert.equal(v.colliders().length,w.plants.filter(p=>p.growth>30).length);
 });
+test('canopy light follows rendered branch clusters and permits overtopping',()=>{
+ const w=createLivingWorld(meta,heights);let darkest={light:1,x:0,z:0};for(const tree of meta.vegetation.filter(p=>p.type==='pisonia').slice(0,60))for(let dx=-3;dx<=3;dx+=2)for(let dz=-3;dz<=3;dz+=2){const x=tree.x+dx,z=tree.z+dz,ground=w.heightAt(x,z);if(ground===null)continue;const light=w.canopyLightAt(x,z,ground+.3);if(light<darkest.light)darkest={light,x,z};}
+ assert(darkest.light<.3);const h=w.heightAt(darkest.x,darkest.z);assert.equal(w.canopyLightAt(darkest.x,darkest.z,h+25),1);
+ const recruit={id:-1,x:darkest.x,z:darkest.z,growth:0,phase:0};assert(w.competition(recruit)<.3);
+ const openMeta={...meta,vegetation:meta.vegetation.filter(p=>p.type!=='pisonia')},open=createLivingWorld(openMeta,heights);assert(w.competition(recruit)<open.competition(recruit));
+});

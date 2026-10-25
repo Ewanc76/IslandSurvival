@@ -16,3 +16,7 @@ test('palms retain every frond while coconuts and crabs enter cheaper mesh tiers
  assert.equal(rows[0].body,1);assert.equal(rows[1].mid,1);assert.equal(rows[2].far,1);assert.equal(rows[3].far,0);assert(rows[0].nuts>0&&rows[1].nutsMid>0&&rows[2].nutsFar>0);assert.equal(rows[3].nutsFar,0);
  assert(v.meshes.frondsDistant.geometry.attributes.position.count<v.meshes.fronds.geometry.attributes.position.count);
 });
+test('leaning palm crowns meet the exact trunk top at every LOD',()=>{
+ const meta=JSON.parse(fs.readFileSync(new URL('./section.json',import.meta.url))),buf=fs.readFileSync(new URL('./height.f32',import.meta.url)),w=createLivingWorld(meta,new Float32Array(buf.buffer,buf.byteOffset,buf.length/4)),p=w.plants[0];p.phase=2.2;p.growth=400;w.plants=[p];w.crabs=[];w.nuts=[];const v=createLivingVisuals(new THREE.Group(),w),m=new THREE.Matrix4(),f=new THREE.Matrix4();
+ for(const distance of [0,40,75,120]){v.sync({x:p.x+distance,z:p.z});const stem=[v.meshes.trunks,v.meshes.trunksMid,v.meshes.trunksFar].find(m=>m.count>0),crown=[v.meshes.fronds,v.meshes.frondsMid,v.meshes.frondsFar,v.meshes.frondsDistant].find(m=>m.count>0);stem.getMatrixAt(0,m);crown.getMatrixAt(0,f);const top=new THREE.Vector3(0,.5,0).applyMatrix4(m),root=new THREE.Vector3().setFromMatrixPosition(f);assert(top.distanceTo(root)<.001);}
+});

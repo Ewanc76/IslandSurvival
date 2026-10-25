@@ -1,0 +1,35 @@
+{
+  "seed": 731,
+  "months": 438,
+  "scope": "One paired deterministic solver check; not ecological calibration or a phone performance test",
+  "runs": [
+    {
+      "name": "LOD 02 baseline",
+      "months": 438,
+      "palms": 4275,
+      "coconuts": 1601,
+      "crabs": 135,
+      "born": 7196,
+      "died": 4194,
+      "peakPalms": 5591,
+      "firstCapMonth": 5,
+      "capHits": 509343,
+      "nutrientError": -1.8189894035458565e-10,
+      "elapsedSeconds": 11.614941476
+    },
+    {
+      "name": "Canopy 03 candidate",
+      "months": 438,
+      "palms": 4398,
+      "coconuts": 1501,
+      "crabs": 70,
+      "born": 7203,
+      "died": 4078,
+      "peakPalms": 5568,
+      "firstCapMonth": 5,
+      "capHits": 530980,
+      "nutrientError": -1.964508555829525e-10,
+      "elapsedSeconds": 10.689651309
+    }
+  ]
+}

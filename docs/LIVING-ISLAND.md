@@ -1,3 +1,17 @@
+## Canopy revision 03 — October 25, 2026
+
+Palm crowns now use the exact endpoint of their leaning trunk; the former independent offsets could leave the crown visibly detached. Fronds have a continuous rachis at every LOD and a lower, drooping profile. Trunk-tip/crown-root agreement is checked across all four LODs.
+
+Static canopy shading now uses 36 twig-cluster footprints per tree, baked from each of the same three form variants rendered on the island. Plant rotations, scales and terrain elevation transform these into world space. A cached 2 m horizontal / 0.5 m vertical light field estimates overlapping foliage transmission. Palms above a tree crown are not shaded by that crown. Optical density remains an experimental game assumption. The existing palm-neighbour competition is preserved; other species still do not consume soil nutrients or reproduce.
+
+A paired deterministic 438-month run with seed 731 reproduced Ewan's screenshot exactly before the change: 4,275 palms, 1,601 coconuts, 135 crabs. Candidate: 4,398 palms, 1,501 coconuts, 70 crabs. Both encountered the technical capacity at month five, and both conserved the nutrient ledger within 2e-10 units. See [recorded comparison](experiments/canopy-comparison.json). This one pair does not demonstrate equilibrium, reduced density or better phone FPS. Canopy shading alone has not removed the population ceiling. Static-species root/soil competition is future work.
+
+The first trial incorrectly replaced rather than retained palm-neighbour competition and grew to 5,535 palms with no crabs at month 438; it was rejected before release. The published candidate retains that tested competition.
+
+All 17 automated checks and the static build pass. Real browser appearance and revision 03 phone performance remain pending. Ecology still runs on the main thread, so 100× can still hitch. The original screenshot's 30 FPS belongs to revision 02.
+
+---
+
 ## LOD revision 02 — October 24, 2026
 
 Ewan's device playtest of v01: steady 30 FPS; noticeable walking hitch at 100× ecology speed; earlier detailed foliage missing. This is a human result for v01, not evidence about revision 02 performance.

@@ -3,7 +3,7 @@ const root=path.resolve(__dirname,'..'),out=path.join(root,'_site');
 fs.mkdirSync(out,{recursive:true});
 fs.copyFileSync(path.join(root,'site/index.html'),path.join(out,'index.html'));
 const src=path.join(root,'browser/cooper-west'),dest=path.join(out,'cooper-west');fs.mkdirSync(dest,{recursive:true});
-for(const name of ['index.html','app.js','style.css','terrain.js','living-world.js','living-visuals.js','lod.js','tree-forms.js','foliage-lod.js','height.f32','section.json','provenance.u8'])fs.copyFileSync(path.join(src,name),path.join(dest,name));
+for(const name of ['index.html','app.js','style.css','terrain.js','living-world.js','living-visuals.js','lod.js','tree-forms.js','foliage-lod.js','palm-frame.js','palm-frond.js','canopy.js','canopy-shapes.js','height.f32','section.json','provenance.u8'])fs.copyFileSync(path.join(src,name),path.join(dest,name));
 fs.cpSync(path.join(src,'vendor'),path.join(dest,'vendor'),{recursive:true});
 fs.writeFileSync(path.join(out,'.nojekyll'),'');console.log('Built static hub and Cooper West preview in _site');
 

@@ -1,3 +1,5 @@
+import {createCanopyLight} from './canopy.js';
+import {palmCrownHeight,palmFrame} from './palm-frame.js';
 import {Grove} from '../ecology/ecology.js';
 import {spawnCrab} from '../ecology/crabs.js';
 import {sampleHeight} from './terrain.js';
@@ -22,9 +24,11 @@ export function createLivingWorld(meta,heights){
  for(let i=0;i<12;i++){const p=near[i],x=p.x+2,z=p.z+1;if(w.habitat(x,z))w.addPalm(x,z,[0,9,24,60][i%4],w.plants.find(q=>q.x===p.x&&q.z===p.z)?.id);}
  const sites=[...near.slice(0,8),...palms.filter((_,i)=>i%32===0)];
  for(const p of sites){const x=p.x+1,z=p.z+1;if(w.habitat(x,z))spawnCrab(w,x,z,24);}
- // Keep the original seedling competition rule, with extra light competition from
- // the static canopy trees. Other species are not yet in the nutrient ledger.
- const canopy=new Map();for(const p of meta.vegetation.filter(p=>p.type==='pisonia')){const key=Math.floor(p.x/7)+','+Math.floor(p.z/7);if(!canopy.has(key))canopy.set(key,[]);canopy.get(key).push(p);}
- const baseCompetition=w.competition.bind(w);w.competition=p=>{let shade=0;const cx=Math.floor(p.x/7),cz=Math.floor(p.z/7);for(let x=cx-1;x<=cx+1;x++)for(let z=cz-1;z<=cz+1;z++)for(const q of canopy.get(x+','+z)||[]){const d=Math.hypot(p.x-q.x,p.z-q.z);if(d<7&&w.height(p)<6*q.scale)shade+=(1-d/7)*.3;}return Math.max(.025,baseCompetition(p)-shade);};
+ // The static crown map comes from the same form variants used by foliage LOD.
+ // Keep tested palm neighbourhood competition; static crowns add shade, not relief.
+ const canopyLight=createCanopyLight(meta),baseCompetition=w.competition.bind(w);w.canopyLightAt=canopyLight;
+ w.competition=p=>{const g=Math.max(0,p.growth||0),h=palmCrownHeight(g,w.height(p)),top=palmFrame(p.x,p.z,h,p.phase||0),ground=w.heightAt(p.x,p.z)||0;
+  return Math.max(.005,baseCompetition(p)*canopyLight(top.x,top.z,ground+top.y+.3));
+ };
  w.recordPatchChanges();w.firstPalmArrival=[0];w.history=[w.summary()];return w;
 }

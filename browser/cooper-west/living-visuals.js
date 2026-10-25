@@ -1,3 +1,5 @@
+import {createPalmFrond} from './palm-frond.js';
+import {smooth,palmCrownHeight,palmFrame} from './palm-frame.js';
 import {lodBand,uploadInstances} from './lod.js';
 import * as THREE from './vendor/three.module.js';
 import {CRAB_MAX} from '../ecology/crabs.js';
@@ -17,45 +19,36 @@ for(let ring=0;ring<10;ring++)for(let side=0;side<32;side++){
  for(const [v,angle] of [[t,a],[u,a],[u,b],[t,a],[u,b],[t,b]]){huskPositions.push(...huskPoint(v,angle));huskColors.push(...huskColor(v,angle).toArray());}
 }
 nutGeo.setAttribute('position',new THREE.Float32BufferAttribute(huskPositions,3));nutGeo.setAttribute('color',new THREE.Float32BufferAttribute(huskColors,3));nutGeo.computeVertexNormals();nutMat.vertexColors=true;
-const trunkGeo=new THREE.CylinderGeometry(.16,.29,1,7,1);const frondGeo=new THREE.BufferGeometry();
-// A curved rachis with paired tapered leaflets, all built as one shared mesh.
-const verts=[];const tri=(a,b,c)=>verts.push(...a,...b,...c);
-for(let j=0;j<12;j++){const t=j/12,u=(j+1)/12;const center=v=>[v*4,Math.sin(v*Math.PI)*1.25-v*v*.7,0];const a=center(t),b=center(u);tri([a[0],a[1],-.05],[a[0],a[1],.05],b);
- for(const sign of [-1,1]){const width=Math.sin((t*.85+.1)*Math.PI)*1.15*(1-t*.5);tri(a,[a[0]+.65,a[1]-.28,sign*width],b);}}
-frondGeo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));frondGeo.computeVertexNormals();
+const trunkGeo=new THREE.CylinderGeometry(.16,.29,1,7,1),frondGeo=createPalmFrond(0);
 // Seedling leaves are folded straps; adult pinnae appear gradually as the crown develops.
 const strapGeo=new THREE.BufferGeometry(),strapVerts=[];
 for(let j=0;j<12;j++){const a=j/12,b=(j+1)/12;const point=(t,side)=>[t*1.35,Math.sin(t*Math.PI*.7)*1.05,side*Math.sin(t*Math.PI)*.16];
  for(const side of [-1,1])strapVerts.push(...point(a,0),...point(a,side),...point(b,side),...point(a,0),...point(b,side),...point(b,0));}
 strapGeo.setAttribute('position',new THREE.Float32BufferAttribute(strapVerts,3));strapGeo.computeVertexNormals();
 const youngLeaf=mat('#78a541');
-function reducedFrond(steps,blade=false){const v=[],tri=(a,b,c)=>v.push(...a,...b,...c),center=t=>[t*(blade?4.3:4),Math.sin(t*Math.PI)*1.25-t*t*.7,0],width=t=>Math.sin((t*.85+.1)*Math.PI)*1.15*(1-t*.5);
- for(let j=0;j<steps;j++){const t=j/steps,u=(j+1)/steps,a=center(t),b=center(u);if(blade){const w=width(t),q=j===steps-1?0:width(u);tri([a[0],a[1],-w],[a[0],a[1],w],[b[0],b[1],q]);tri([a[0],a[1],-w],[b[0],b[1],q],[b[0],b[1],-q]);}else{tri([a[0],a[1],-.05],[a[0],a[1],.05],b);for(const sign of [-1,1])tri(a,[a[0]+.65,a[1]-.28,sign*width(t)],b);}}
- const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.computeVertexNormals();return g;}
 const make=(geo,material,count)=>{const m=new THREE.InstancedMesh(geo,material,count);m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;m.count=0;vegetation.add(m);return m;};
-const fronds=make(frondGeo,leaf,limit*9),frondsMid=make(reducedFrond(6),leaf,limit*9),frondsFar=make(reducedFrond(4,true),leaf,limit*9),frondsDistant=make(reducedFrond(2,true),leaf,limit*9);
+const fronds=make(frondGeo,leaf,limit*9),frondsMid=make(createPalmFrond(1),leaf,limit*9),frondsFar=make(createPalmFrond(2),leaf,limit*9),frondsDistant=make(createPalmFrond(3),leaf,limit*9);
 const trunks=make(trunkGeo,bark,limit),trunksMid=make(new THREE.CylinderGeometry(.16,.29,1,5),bark,limit),trunksFar=make(new THREE.CylinderGeometry(.16,.29,1,3),bark,limit);
 const nuts=make(nutGeo,nutMat,limit*4),nutSimpleMat=mat('#ac9577'),nutsMid=make(new THREE.IcosahedronGeometry(1,1).scale(.34,.34,.46),nutSimpleMat,limit*4),nutsFar=make(new THREE.IcosahedronGeometry(1,0).scale(.34,.34,.46),nutSimpleMat,limit*4),straps=make(strapGeo,youngLeaf,limit*5);
 const palmLevels=new Map(),nutLevels=new Map(),crabLevels=new Map();
 
 const dummy=new THREE.Object3D();
-const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 // Visual development follows effective growth; husk decay follows chronological age.
 // This does not alter solver height, competition, reproduction or nutrient accounting.
 function palmParts(p,emit){
  const g=Math.max(0,p.growth),phase=p.phase||0;
- const lift=smooth(30,84,g),h=.10+lift*(grove.height(p)-.10),lean=Math.sin(phase)*.5;
- if(g>30){const width=.42+.58*smooth(30,120,g);emit('trunk',[p.x+lean*h*.03,h/2,p.z],[0,phase,-lean*.06],[width,h,width]);}
+ const h=palmCrownHeight(g,grove.height(p)),top=palmFrame(p.x,p.z,h,phase);
+ if(g>30){const width=.42+.58*smooth(30,120,g);emit('trunk',[(p.x+top.x)/2,top.y/2,(p.z+top.z)/2],[0,phase,top.tilt],[width,h,width]);}
  const strapCount=g<3?1:g<8?2:g<16?3:5;
  const strapScale=(.16+.95*smooth(0,24,g))*(1-smooth(24,48,g));
  if(strapScale>.005)for(let j=0;j<strapCount;j++){
-  emit('strap',[p.x,h,p.z],[0,phase+j*2.4,-.85*(1-smooth(0,10,g))],[strapScale,strapScale,strapScale]);
+  emit('strap',[top.x,top.y,top.z],[0,phase+j*2.4,-.85*(1-smooth(0,10,g))],[strapScale,strapScale,strapScale]);
  }
  const divided=smooth(12,42,g),size=(.20+.80*smooth(12,110,g))*divided;
- if(size>.002){const count=g<24?4:g<48?6:9;for(let j=0;j<count;j++)emit('frond',[p.x+lean*h*.06,h,p.z],[0,j*Math.PI*2/count+phase,(j%3-1)*.18],[size,size,size]);}
+ if(size>.002){const count=g<24?4:g<48?6:9;for(let j=0;j<count;j++)emit('frond',[top.x,top.y,top.z],[0,j*Math.PI*2/count+phase,(j%3-1)*.18],[size,size,size]);}
  const husk=1-smooth(6,24,p.age);
  if(husk>.01)emit('nut',[p.x-.22*Math.cos(phase),.23*husk,p.z+.22*Math.sin(phase)],[.35,phase,.3],[husk,husk*.72,husk*1.25]);
- if(g>=84)for(let j=0;j<3;j++)emit('nut',[p.x+Math.cos(j*2.1)*.32,h-.3,p.z+Math.sin(j*2.1)*.32],[0,0,0],[1,1,1]);
+ if(g>=84)for(let j=0;j<3;j++)emit('nut',[top.x+Math.cos(j*2.1)*.32,top.y-.3,top.z+Math.sin(j*2.1)*.32],[0,0,0],[1,1,1]);
 }
 function setPart(mesh,index,pos,rot,scale,ground=grove.heightAt(pos[0],pos[2])||0){dummy.position.set(pos[0],pos[1]+ground,pos[2]);dummy.rotation.set(...rot);dummy.scale.set(...scale);dummy.updateMatrix();mesh.setMatrixAt(index,dummy.matrix);}
 // Coconut-crab inspired anatomy. The ecological solver remains authoritative.

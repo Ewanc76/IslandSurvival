@@ -1,3 +1,9 @@
+# Canopy revision 03 — October 25, 2026
+
+The review candidate fixes trunk/crown alignment and uses actual rendered twig-cluster footprints for static tree shade while retaining palm-neighbour competition. Seventeen checks/build pass. One paired 36.5-year run reproduced the screenshot baseline exactly, but candidate palms rose slightly (4,398 vs 4,275); shade alone has not solved density or the technical ceiling. Other species' root/soil demands remain unmodelled. No new phone FPS claim. Details/results: LIVING-ISLAND.md and docs/experiments/canopy-comparison.json. Main/Pages remain unchanged.
+
+---
+
 # LOD revision 02 — October 24, 2026
 
 Ewan reports steady 30 FPS on living-island v01, with a noticeable 100× ecology hitch and the earlier foliage absent. The review branch now restores Mobile Test 08 branch-following foliage and adds geometry LODs for canopy, palms, coconuts and crabs. Full details and limits are in LIVING-ISLAND.md. Fifteen automated checks/build pass; new phone/WebGL validation remains pending. Main/Pages remain unchanged.
