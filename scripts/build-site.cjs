@@ -10,3 +10,4 @@ fs.writeFileSync(path.join(out,'.nojekyll'),'');console.log('Built static hub an
 
 fs.cpSync(path.join(root,'browser/ecology'),path.join(out,'ecology'),{recursive:true});
 require('./build-living-standalone.cjs');
+require('./build-foliage-bake.cjs');

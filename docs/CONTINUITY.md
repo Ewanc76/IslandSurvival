@@ -1,3 +1,9 @@
+# Texture-card comparison — October 25, 2026
+
+A separate foliage A/B viewer now compares the same tree form and lighting with polygon leaves versus baked color/alpha/normal cards. It offers tile sizes, tree counts and a matched camera benchmark; no performance result is claimed. The island's production foliage remains polygons. See FOLIAGE-BAKE-TEST.md. Human phone/WebGL review pending.
+
+---
+
 # Canopy revision 03 — October 25, 2026
 
 The review candidate fixes trunk/crown alignment and uses actual rendered twig-cluster footprints for static tree shade while retaining palm-neighbour competition. Seventeen checks/build pass. One paired 36.5-year run reproduced the screenshot baseline exactly, but candidate palms rose slightly (4,398 vs 4,275); shade alone has not solved density or the technical ceiling. Other species' root/soil demands remain unmodelled. No new phone FPS claim. Details/results: LIVING-ISLAND.md and docs/experiments/canopy-comparison.json. Main/Pages remain unchanged.
