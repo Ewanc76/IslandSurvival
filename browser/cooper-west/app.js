@@ -1,3 +1,5 @@
+import {createLivingWorld} from './living-world.js';
+import {createLivingVisuals} from './living-visuals.js';
 import * as THREE from './vendor/three.module.js';
 import {sampleHeight,movePlayer} from './terrain.js';
 const $=id=>document.getElementById(id), canvas=$('world');
@@ -29,21 +31,27 @@ function merge(geos){const ps=[],ns=[],cs=[];for(const [geometry,color] of geos)
 const brown=new THREE.Color('#8a7956'),leaf=new THREE.Color('#46784a'),lightleaf=new THREE.Color('#6e914e');
 function branch(a,b,r0,r1){const av=new THREE.Vector3(...a),bv=new THREE.Vector3(...b),delta=bv.clone().sub(av);const g=new THREE.CylinderGeometry(r1,r0,delta.length(),5,1);g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize()));g.translate(...av.add(bv).multiplyScalar(.5).toArray());return g;}
 function pisonia(){let parts=[[branch([0,0,0],[.3,4.4,0],.32,.16),brown]];for(let i=0;i<4;i++){const a=i*1.57+.2,b=[Math.cos(a)*2.8,5.8+(i%2)*.6,Math.sin(a)*2.8];parts.push([branch([.2,3.6,0],b,.16,.04),brown]);const g=new THREE.IcosahedronGeometry(1,0);g.scale(3.4,1.25,2.8);g.rotateY(a);g.translate(...b);parts.push([g,i%2?leaf:lightleaf]);}return merge(parts);}
-function palm(){const parts=[];let last=[0,0,0];for(let i=1;i<=3;i++){const next=[.09*i*i,i*2.7,0];parts.push([branch(last,next,.15-(i-1)*.025,.15-i*.025),brown]);last=next;}const verts=[];for(let i=0;i<8;i++){const a=i*Math.PI/4;for(let j=0;j<4;j++){const t=j/4,u=(j+1)/4;function p(s,side){const rad=4.7*s,y=8.1+1.5*Math.sin(Math.PI*s)-2.4*s*s,w=.36*Math.sin(Math.PI*s);return [.81+Math.cos(a)*rad+Math.sin(a)*w*side,y,Math.sin(a)*rad-Math.cos(a)*w*side];}verts.push(...p(t,-1),...p(u,-1),...p(u,1),...p(t,-1),...p(u,1),...p(t,1));}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));g.computeVertexNormals();parts.push([g,leaf]);return merge(parts);}
 function shrub(){return merge([[-.6,.6,0],[.6,.8,0],[0,.5,.6]].map((p,i)=>{const g=new THREE.IcosahedronGeometry(1,0);g.scale(1.1,.9,1);g.translate(...p);return [g,i%2?lightleaf:leaf];}));}
 function fern(){let v=[];for(let i=0;i<7;i++){let a=i*.897;for(let j=0;j<3;j++){const t=j/3,u=(j+1)/3;function p(s,k){return [Math.cos(a)*1.2*s+Math.sin(a)*.22*k*Math.sin(Math.PI*s),.15+.8*Math.sin(s*2.1),Math.sin(a)*1.2*s-Math.cos(a)*.22*k*Math.sin(Math.PI*s)];}v.push(...p(t,-1),...p(u,-1),...p(u,1),...p(t,-1),...p(u,1),...p(t,1));}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.computeVertexNormals();return merge([[g,lightleaf]]);}
 const vegetationGroup=new THREE.Group();scene.add(vegetationGroup);const colliders=[];
-for(const [type,make] of Object.entries({palm,pisonia,shrub,fern})){
+for(const [type,make] of Object.entries({pisonia,shrub,fern})){
  const plants=meta.vegetation.filter(p=>p.type===type),g=make(),mat=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
  const im=new THREE.InstancedMesh(g,mat,plants.length),dummy=new THREE.Object3D();
  plants.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.rotation.y=p.rotation;dummy.scale.setScalar(p.scale);dummy.updateMatrix();im.setMatrixAt(i,dummy.matrix);if(type==='palm'||type==='pisonia')colliders.push({x:p.x,z:p.z,radius:type==='palm'?.18:.34});});
  im.instanceMatrix.needsUpdate=true;im.computeBoundingSphere();vegetationGroup.add(im);
 }
+const living=createLivingWorld(meta,heights),livingVisuals=createLivingVisuals(vegetationGroup,living),staticColliderCount=colliders.length;
+let lifePaused=false,lifeAccumulator=0,advancingYear=false;
+function refreshLife(){livingVisuals.sync(p);colliders.length=staticColliderCount;colliders.push(...livingVisuals.colliders());$('lifeStats').textContent=`Year ${(living.month/12).toFixed(1)} · ${living.plants.length} palms · ${living.nuts.length} coconuts · ${living.crabs.length} crabs${living.stats.capHits?' · population limit reached':''}`;}
 // Depth color is driven by terrain height, not by satellite colors.
 const depthTex=new THREE.DataTexture(heights,meta.width,meta.height,THREE.RedFormat,THREE.FloatType);depthTex.needsUpdate=true;depthTex.magFilter=THREE.LinearFilter;depthTex.minFilter=THREE.LinearFilter;
 const waterMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,uniforms:{heightmap:{value:depthTex},extent:{value:new THREE.Vector4(meta.west_local_m,meta.north_local_z_m,(meta.width-1)*5,(meta.height-1)*5)},time:{value:0}},vertexShader:`varying vec3 world; uniform float time; void main(){vec3 p=position; vec4 w=modelMatrix*vec4(p,1.); w.y+=.025*sin(w.x*.06+time*.6)*sin(w.z*.04+time*.4);world=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,fragmentShader:`precision highp float; varying vec3 world;uniform sampler2D heightmap;uniform vec4 extent;uniform float time;void main(){vec2 uv=(world.xz-extent.xy)/extent.zw;float h=-30.;if(uv.x>=0.&&uv.y>=0.&&uv.x<=1.&&uv.y<=1.)h=texture2D(heightmap,uv).r;if(h>.04)discard;float d=max(.0,-h);float f=1.-exp(-d/5.5);vec3 col=mix(vec3(.22,.73,.69),vec3(.025,.22,.36),f);float ripple=sin(world.x*.19+time)*sin(world.z*.23-time*.7);col+=.025*ripple;float foam=(1.-smoothstep(.05,.35,d))*.22;col=mix(col,vec3(.92,.96,.82),foam);gl_FragColor=vec4(col,mix(.28,.91,f));}`});
 const waterGeometry=new THREE.PlaneGeometry(4400,4400,80,80);waterGeometry.rotateX(-Math.PI/2);const water=new THREE.Mesh(waterGeometry,waterMaterial);water.position.set(meta.west_local_m+(meta.width-1)*2.5,0,meta.north_local_z_m+(meta.height-1)*2.5);scene.add(water);
 let p={x:meta.spawn[0],y:meta.spawn[1]+1.68,z:meta.spawn[2]},yaw=0,pitch=-.035,isAerial=false,started=false;
+refreshLife();
+$('lifePause').onclick=()=>{lifePaused=!lifePaused;$('lifePause').textContent=lifePaused?'Resume life':'Pause life';};
+$('lifeYear').onclick=async()=>{if(advancingYear)return;advancingYear=true;$('lifeYear').disabled=true;try{for(let i=0;i<12;i++){living.step();refreshLife();await new Promise(resolve=>setTimeout(resolve,0));}}finally{advancingYear=false;$('lifeYear').disabled=false;}};
+$('findCrab').onclick=()=>{begin();const c=living.crabs.slice().sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z))[0];if(!c){$('lifeStats').textContent+=' · no surviving crabs';return;}for(const [dx,dz] of [[0,2],[2,0],[0,-2],[-2,0]]){const x=c.x+dx,z=c.z+dz;if(!living.habitat(x,z)||colliders.some(t=>Math.hypot(t.x-x,t.z-z)<t.radius+.28))continue;p={x,y:living.heightAt(x,z)+1.68,z};yaw=Math.atan2(-(c.x-x),-(c.z-z));pitch=-.5;isAerial=false;$('map').textContent='Aerial view';break;}};
 let keys=new Set(),lookId=null,lastX=0,lastY=0,stickId=null,stickOrigin={x:0,y:0},joy={x:0,y:0};
 function begin(){started=true;$('intro').style.display='none';}
 $('enter').onclick=begin;
@@ -65,10 +73,13 @@ addEventListener('resize',resize);resize();
 let last=performance.now(),seconds=0,frames=0,elapsed=0,fps=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;seconds+=dt;frames++;elapsed+=dt;
  if(started&&!isAerial){const forward=(keys.has('KeyW')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-joy.y;const right=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x;const dx=-Math.sin(yaw)*forward+Math.cos(yaw)*right,dz=-Math.cos(yaw)*forward-Math.sin(yaw)*right;p=movePlayer(meta,heights,p,dx,dz,dt,keys.has('ShiftLeft')||keys.has('ShiftRight'),vegetationGroup.visible?colliders:[]);if(p.edge){$('notice').textContent='End of the loaded terrain patch · more island continues east';$('notice').style.display='block';}else $('notice').style.display='none';}
+ if(started&&!lifePaused&&!advancingYear){lifeAccumulator+=dt*Number($('lifeSpeed').value)/60;while(lifeAccumulator>=1){living.step();lifeAccumulator--;refreshLife();}}
+ livingVisuals.update(p,dt,lifePaused);
  camera.position.set(p.x,p.y,p.z);camera.rotation.set(pitch,yaw,0);waterMaterial.uniforms.time.value=seconds;
  scene.fog.density=isAerial?.00015:.0014;renderer.render(scene,isAerial?aerial:camera);
- if(elapsed>.75){fps=Math.round(frames/elapsed);frames=0;elapsed=0;const depth=sampleHeight(meta,heights,p.x,p.z);$('location').textContent=`${isAerial?'Aerial overview':depth<-.7?'In the water':Math.abs(p.z-meta.landmarks.forest[2])<18?'Forest crossing':p.z<meta.landmarks.forest[2]?'North shore':'South shore'} · ${fps} FPS`;$('stats').textContent=`${renderer.info.render.triangles.toLocaleString()} triangles · ${renderer.info.render.calls} draws · terrain preview`;}
+ if(elapsed>.75){fps=Math.round(frames/elapsed);frames=0;elapsed=0;const depth=sampleHeight(meta,heights,p.x,p.z);$('location').textContent=`${isAerial?'Aerial overview':depth<-.7?'In the water':Math.abs(p.z-meta.landmarks.forest[2])<18?'Forest crossing':p.z<meta.landmarks.forest[2]?'North shore':'South shore'} · ${fps} FPS`;$('stats').textContent=`${renderer.info.render.triangles.toLocaleString()} triangles · ${renderer.info.render.calls} draws · living island`;}
  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-window.cooperTest={meta,sampleHeight:(x,z)=>sampleHeight(meta,heights,x,z),get state(){return {...p,yaw,pitch,isAerial,fps,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles};},ready:true,setView(name){document.querySelector(`[data-point="${name}"]`).click();}};
+window.cooperTest={meta,life:()=>living.summary(),sampleHeight:(x,z)=>sampleHeight(meta,heights,x,z),get state(){return {...p,yaw,pitch,isAerial,fps,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles};},ready:true,setView(name){document.querySelector(`[data-point="${name}"]`).click();}};
+

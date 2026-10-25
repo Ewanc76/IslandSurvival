@@ -1,3 +1,9 @@
+# Living island candidate — October 24, 2026
+
+Cooper West now has an integration candidate with living palms, husked coconuts and coconut crabs. See [LIVING-ISLAND.md](LIVING-ISLAND.md) for scope, controls and validation. This is prepared browser source; it has not been merged or deployed, and phone/browser validation remains pending. The Godot build is unchanged.
+
+---
+
 # Current shared development — 20 October 2026
 
 Read [START-HERE.md](../START-HERE.md) first. It is the short, current PC/Android handoff. The standalone Cooper West terrain preview has source, height data and tests in this repo. User PC playtest passed (60 FPS shown); physical Android performance remains pending. Mobile Test 08 source and full Godot game source are not imported.
@@ -142,3 +148,4 @@ Start with Island-Survival-Sol-Chat-Recovery-v17.zip. Check chat recovery and br
 - Ewan's visible project conversation: successful forest transition, successful stick collection, perception-range experiment, and request for housekeeping.
 - Retrieved development conversation records: original slice constraints, companion principles, v16 history policy, v17 recovery details, and recent reported checks.
 - No new game tests, source modifications, log diagnosis, artifact moves, or deletions were performed in this housekeeping pass.
+
