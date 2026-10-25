@@ -20,3 +20,10 @@ test('leaning palm crowns meet the exact trunk top at every LOD',()=>{
  const meta=JSON.parse(fs.readFileSync(new URL('./section.json',import.meta.url))),buf=fs.readFileSync(new URL('./height.f32',import.meta.url)),w=createLivingWorld(meta,new Float32Array(buf.buffer,buf.byteOffset,buf.length/4)),p=w.plants[0];p.phase=2.2;p.growth=400;w.plants=[p];w.crabs=[];w.nuts=[];const v=createLivingVisuals(new THREE.Group(),w),m=new THREE.Matrix4(),f=new THREE.Matrix4();
  for(const distance of [0,40,75,120]){v.sync({x:p.x+distance,z:p.z});const stem=[v.meshes.trunks,v.meshes.trunksMid,v.meshes.trunksFar].find(m=>m.count>0),crown=[v.meshes.fronds,v.meshes.frondsMid,v.meshes.frondsFar,v.meshes.frondsDistant].find(m=>m.count>0);stem.getMatrixAt(0,m);crown.getMatrixAt(0,f);const top=new THREE.Vector3(0,.5,0).applyMatrix4(m),root=new THREE.Vector3().setFromMatrixPosition(f);assert(top.distanceTo(root)<.001);}
 });
+
+import {palmLeaflet,createPalmFrond} from './palm-frond.js';
+test('palm pinnae sweep forward, taper and droop while LODs retain the frond envelope',()=>{
+ for(let j=0;j<12;j++){const t=.13+j*.78/11,a=palmLeaflet(t,1),b=palmLeaflet(t,-1),dx=a.tip[0]-a.root[0],dz=a.tip[2]-a.root[2];assert(dx>0);assert(Math.atan2(Math.abs(dz),dx)<Math.PI/3);assert(a.tip[1]<a.root[1]+.15);if(t>.4)assert(a.tip[1]<a.root[1]);assert(Math.abs(a.tip[0]-b.tip[0])<1e-10);assert(Math.abs(a.tip[2]+b.tip[2])<1e-10);const bladeWidth=Math.hypot(...a.left.map((v,i)=>v-a.right[i]));assert(bladeWidth<dx*.5);}
+ let previous=Infinity;for(let level=0;level<4;level++){const g=createPalmFrond(level);g.computeBoundingBox();assert(Math.abs(g.boundingBox.max.x-4.3)<1e-5);assert(g.boundingBox.max.z<1);assert(g.attributes.position.count<previous);previous=g.attributes.position.count;for(const value of g.attributes.normal.array)assert(Number.isFinite(value));g.dispose();}
+});
+

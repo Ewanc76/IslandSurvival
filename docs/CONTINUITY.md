@@ -1,3 +1,10 @@
+## Frond geometry revision 04 — October 25, 2026
+
+The user's stylized palm reference calls for slender leaflets swept forward toward the frond tip, rather than blades extending approximately perpendicular to the midrib. The close mesh now has twelve mirrored pairs of tapered, folded pinnae, with a forward sweep and a little additional droop relative to the frond curve. The continuous central rachis and 4.3 m frond length are retained. Mid-distance geometry uses fewer folded outlines; distant ribbons sample the new leaflet envelope. This updates geometry in the island, not a baked palm texture; the revised mesh can be used as the source for a later palm bake.
+
+All eighteen automated checks pass, including mirrored forward sweep, reasonable blade width, droop, finite normals, decreasing LOD cost, complete crowns and exact trunk/crown joins. Close-up geometry was inspected using an orthographic software projection. Attempts to capture a headless browser preview returned no screenshot, so no new WebGL appearance or device-FPS claim is made. Simulation rules and populations are unchanged. The reference image itself is not redistributed.
+
+---
 # Canopy revision 03 — October 25, 2026
 
 The review candidate fixes trunk/crown alignment and uses actual rendered twig-cluster footprints for static tree shade while retaining palm-neighbour competition. Seventeen checks/build pass. One paired 36.5-year run reproduced the screenshot baseline exactly, but candidate palms rose slightly (4,398 vs 4,275); shade alone has not solved density or the technical ceiling. Other species' root/soil demands remain unmodelled. No new phone FPS claim. Details/results: LIVING-ISLAND.md and docs/experiments/canopy-comparison.json. Main/Pages remain unchanged.
