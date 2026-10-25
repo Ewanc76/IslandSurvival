@@ -1,3 +1,15 @@
+## LOD revision 02 — October 24, 2026
+
+Ewan's device playtest of v01: steady 30 FPS; noticeable walking hitch at 100× ecology speed; earlier detailed foliage missing. This is a human result for v01, not evidence about revision 02 performance.
+
+Revision 02 restores the branch-following leaf geometry from Mobile Test 08, using the existing island tree transforms and three deterministic form variants. Canopy trees and palms use 30/60/90 m bands with 3 m hysteresis. Mid-distance leaves retain their original base, outline and tip; beyond 90 m the original twig groups become cheap crossed leaf masses. Palm crowns keep every frond; individual frond and trunk topology gets simpler with distance. Shrubs and ferns have reduced tiers and are hidden beyond roughly 90 m.
+
+Coconuts use detailed husks within 12 m, a reduced husk at 12–30 m and a simple full-fruit form at 30–60 m, then are hidden. Crabs retain full detail within 12 m, simplified jointed anatomy at 12–30 m, and a single baked silhouette at 30–65 m, then are hidden. Small-object bands use 2 m hysteresis. Hidden organisms continue normal simulation.
+
+Instance uploads cover active matrix ranges instead of reserved capacity. Stationary viewers do not repeatedly rebuild static vegetation batches. Simulation rules and the one-month solver remain unchanged; 100× can still hitch because ecology steps run on the main thread. WebGL appearance and revision 02 phone FPS remain unverified. All 15 automated checks and the build pass, including topology correspondence, LOD thresholds, every-frond retention, mesh tiers and standalone import resolution.
+
+---
+
 # Living palms and coconut crabs — first island integration
 
 Candidate: Cooper West Living Island v01, October 24, 2026. Based on shared `main` at `08fd5bd5c30df6e8bbf71c54ab1066b54dab92e5` and the approved Living-Palms-Soil-v02.html artifact version 6.

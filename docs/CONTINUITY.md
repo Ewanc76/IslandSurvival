@@ -1,3 +1,9 @@
+# LOD revision 02 — October 24, 2026
+
+Ewan reports steady 30 FPS on living-island v01, with a noticeable 100× ecology hitch and the earlier foliage absent. The review branch now restores Mobile Test 08 branch-following foliage and adds geometry LODs for canopy, palms, coconuts and crabs. Full details and limits are in LIVING-ISLAND.md. Fifteen automated checks/build pass; new phone/WebGL validation remains pending. Main/Pages remain unchanged.
+
+---
+
 # Living island candidate — October 24, 2026
 
 Cooper West now has an integration candidate with living palms, husked coconuts and coconut crabs. See [LIVING-ISLAND.md](LIVING-ISLAND.md) for scope, controls and validation. This is prepared browser source; it has not been merged or deployed, and phone/browser validation remains pending. The Godot build is unchanged.

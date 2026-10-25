@@ -1,3 +1,4 @@
+import {lodBand,uploadInstances} from './lod.js';
 import * as THREE from './vendor/three.module.js';
 import {CRAB_MAX} from '../ecology/crabs.js';
 // Shared procedural forms copied from the approved palm-lab models (artifact v6).
@@ -16,7 +17,7 @@ for(let ring=0;ring<10;ring++)for(let side=0;side<32;side++){
  for(const [v,angle] of [[t,a],[u,a],[u,b],[t,a],[u,b],[t,b]]){huskPositions.push(...huskPoint(v,angle));huskColors.push(...huskColor(v,angle).toArray());}
 }
 nutGeo.setAttribute('position',new THREE.Float32BufferAttribute(huskPositions,3));nutGeo.setAttribute('color',new THREE.Float32BufferAttribute(huskColors,3));nutGeo.computeVertexNormals();nutMat.vertexColors=true;
-const trunkGeo=new THREE.CylinderGeometry(.16,.29,1,7,4);const frondGeo=new THREE.BufferGeometry();
+const trunkGeo=new THREE.CylinderGeometry(.16,.29,1,7,1);const frondGeo=new THREE.BufferGeometry();
 // A curved rachis with paired tapered leaflets, all built as one shared mesh.
 const verts=[];const tri=(a,b,c)=>verts.push(...a,...b,...c);
 for(let j=0;j<12;j++){const t=j/12,u=(j+1)/12;const center=v=>[v*4,Math.sin(v*Math.PI)*1.25-v*v*.7,0];const a=center(t),b=center(u);tri([a[0],a[1],-.05],[a[0],a[1],.05],b);
@@ -28,9 +29,14 @@ for(let j=0;j<12;j++){const a=j/12,b=(j+1)/12;const point=(t,side)=>[t*1.35,Math
  for(const side of [-1,1])strapVerts.push(...point(a,0),...point(a,side),...point(b,side),...point(a,0),...point(b,side),...point(b,0));}
 strapGeo.setAttribute('position',new THREE.Float32BufferAttribute(strapVerts,3));strapGeo.computeVertexNormals();
 const youngLeaf=mat('#78a541');
-const fronds=new THREE.InstancedMesh(frondGeo,leaf,limit*9),trunks=new THREE.InstancedMesh(trunkGeo,bark,limit),nuts=new THREE.InstancedMesh(nutGeo,nutMat,limit*4),straps=new THREE.InstancedMesh(strapGeo,youngLeaf,limit*5);
-vegetation.add(trunks,fronds,nuts,straps);
-for(const m of [fronds,trunks,nuts,straps])m.frustumCulled=false;
+function reducedFrond(steps,blade=false){const v=[],tri=(a,b,c)=>v.push(...a,...b,...c),center=t=>[t*(blade?4.3:4),Math.sin(t*Math.PI)*1.25-t*t*.7,0],width=t=>Math.sin((t*.85+.1)*Math.PI)*1.15*(1-t*.5);
+ for(let j=0;j<steps;j++){const t=j/steps,u=(j+1)/steps,a=center(t),b=center(u);if(blade){const w=width(t),q=j===steps-1?0:width(u);tri([a[0],a[1],-w],[a[0],a[1],w],[b[0],b[1],q]);tri([a[0],a[1],-w],[b[0],b[1],q],[b[0],b[1],-q]);}else{tri([a[0],a[1],-.05],[a[0],a[1],.05],b);for(const sign of [-1,1])tri(a,[a[0]+.65,a[1]-.28,sign*width(t)],b);}}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.computeVertexNormals();return g;}
+const make=(geo,material,count)=>{const m=new THREE.InstancedMesh(geo,material,count);m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;m.count=0;vegetation.add(m);return m;};
+const fronds=make(frondGeo,leaf,limit*9),frondsMid=make(reducedFrond(6),leaf,limit*9),frondsFar=make(reducedFrond(4,true),leaf,limit*9),frondsDistant=make(reducedFrond(2,true),leaf,limit*9);
+const trunks=make(trunkGeo,bark,limit),trunksMid=make(new THREE.CylinderGeometry(.16,.29,1,5),bark,limit),trunksFar=make(new THREE.CylinderGeometry(.16,.29,1,3),bark,limit);
+const nuts=make(nutGeo,nutMat,limit*4),nutSimpleMat=mat('#ac9577'),nutsMid=make(new THREE.IcosahedronGeometry(1,1).scale(.34,.34,.46),nutSimpleMat,limit*4),nutsFar=make(new THREE.IcosahedronGeometry(1,0).scale(.34,.34,.46),nutSimpleMat,limit*4),straps=make(strapGeo,youngLeaf,limit*5);
+const palmLevels=new Map(),nutLevels=new Map(),crabLevels=new Map();
 
 const dummy=new THREE.Object3D();
 const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
@@ -51,7 +57,7 @@ function palmParts(p,emit){
  if(husk>.01)emit('nut',[p.x-.22*Math.cos(phase),.23*husk,p.z+.22*Math.sin(phase)],[.35,phase,.3],[husk,husk*.72,husk*1.25]);
  if(g>=84)for(let j=0;j<3;j++)emit('nut',[p.x+Math.cos(j*2.1)*.32,h-.3,p.z+Math.sin(j*2.1)*.32],[0,0,0],[1,1,1]);
 }
-function setPart(mesh,index,pos,rot,scale){dummy.position.set(pos[0],pos[1]+(grove.heightAt(pos[0],pos[2])||0),pos[2]);dummy.rotation.set(...rot);dummy.scale.set(...scale);dummy.updateMatrix();mesh.setMatrixAt(index,dummy.matrix);}
+function setPart(mesh,index,pos,rot,scale,ground=grove.heightAt(pos[0],pos[2])||0){dummy.position.set(pos[0],pos[1]+ground,pos[2]);dummy.rotation.set(...rot);dummy.scale.set(...scale);dummy.updateMatrix();mesh.setMatrixAt(index,dummy.matrix);}
 // Coconut-crab inspired anatomy. The ecological solver remains authoritative.
 // Shared geometry and instancing keep jointed animals affordable in a large grove.
 const crabArmorGeo=new THREE.IcosahedronGeometry(1,1),armorColors=[];
@@ -62,8 +68,10 @@ for(let i=0;i<crabArmorGeo.attributes.position.count;i++){
 crabArmorGeo.setAttribute('color',new THREE.Float32BufferAttribute(armorColors,3));
 const crabArmor=mat('#ffffff');crabArmor.vertexColors=true;
 const crabShapes={body:[crabArmorGeo,crabArmor,1],plates:[crabArmorGeo,crabArmor,4],limbs:[new THREE.CylinderGeometry(.65,1,1,6),mat('#8e5846'),40],joints:[new THREE.IcosahedronGeometry(1,0),mat('#62454b'),12],claws:[crabArmorGeo,crabArmor,2],tips:[new THREE.CylinderGeometry(.2,1,1,5),mat('#c8ad8a'),16],eyes:[new THREE.SphereGeometry(1,7,5),mat('#151916'),2],antennae:[new THREE.CylinderGeometry(.45,1,1,4),mat('#724f40'),8]};
-function makeCrabMeshes(capacity,parent){const meshes={};for(const [key,[geo,material,count]] of Object.entries(crabShapes)){const m=new THREE.InstancedMesh(geo,material,capacity*count);m.frustumCulled=false;m.count=0;parent.add(m);meshes[key]=m;}return meshes;}
-const crabMeshes=makeCrabMeshes(CRAB_MAX,vegetation),crabBody=crabMeshes.body;
+const coarseArmor=new THREE.IcosahedronGeometry(1,0);coarseArmor.setAttribute('color',new THREE.Float32BufferAttribute(Array.from({length:coarseArmor.attributes.position.count*3},(_,i)=>[.25,.13,.10][i%3]),3));
+const coarseShapes=Object.fromEntries(Object.entries(crabShapes).map(([key,[geo,material,count]])=>[key,[['body','plates','claws'].includes(key)?coarseArmor:['limbs','tips'].includes(key)?new THREE.CylinderGeometry(key==='tips'?.2:.65,1,1,3):geo,material,count]]));
+function makeCrabMeshes(capacity,parent,level=0){const meshes={};for(const [key,[geo,material,count]] of Object.entries(level===0?crabShapes:coarseShapes)){const m=new THREE.InstancedMesh(geo,material,capacity*count);m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;m.count=0;parent.add(m);meshes[key]=m;}return meshes;}
+const crabMeshes=makeCrabMeshes(CRAB_MAX,vegetation),crabMidMeshes=makeCrabMeshes(CRAB_MAX,vegetation,1),crabBody=crabMeshes.body;
 const crabVisuals=new Map(),crabPickIds=[];
 let crabWorld=grove,inspectedCrab=null,followingCrab=false;
 const boneAxis=new THREE.Vector3(0,1,0),boneDirection=new THREE.Vector3(),boneRotation=new THREE.Quaternion();
@@ -99,40 +107,49 @@ function crabParts(phase,moving,eating,time,emit){
   for(let pair=0;pair<2;pair++){const root=[side*.10,base+.02,.37],bend=[side*(.19+pair*.09+sweep),base+.13,.61+pair*.05],tip=[side*(.25+pair*.14+sweep),base+.10,.85+pair*.10];bone('antennae',root,bend,pair?.007:.012);bone('antennae',bend,tip,pair?.005:.009);}
  }
 }
+// Bake the distant outline once: no eye/antenna/joint draws or per-part animation.
+const farPositions=[],farColors=[],farMatrix=new THREE.Matrix4();
+crabParts(0,0,false,0,(kind,pos,scale,q)=>{if(['eyes','antennae','joints'].includes(kind))return;const [geometry,material]=coarseShapes[kind],g=geometry.index?geometry.toNonIndexed():geometry.clone();farMatrix.compose(new THREE.Vector3(...pos),q||new THREE.Quaternion(),new THREE.Vector3(...scale));g.applyMatrix4(farMatrix);const p=g.attributes.position,col=g.attributes.color;for(let i=0;i<p.count;i++){farPositions.push(p.getX(i),p.getY(i),p.getZ(i));const color=material.color.clone();if(col&&material.vertexColors)color.multiply(new THREE.Color(col.getX(i),col.getY(i),col.getZ(i)));farColors.push(...color.toArray());}g.dispose();});
+const crabFarGeo=new THREE.BufferGeometry();crabFarGeo.setAttribute('position',new THREE.Float32BufferAttribute(farPositions,3));crabFarGeo.setAttribute('color',new THREE.Float32BufferAttribute(farColors,3));crabFarGeo.computeVertexNormals();const crabFar=make(crabFarGeo,crabArmor,CRAB_MAX);
 const crabRoot=new THREE.Matrix4(),crabLocal=new THREE.Matrix4(),crabMatrix=new THREE.Matrix4(),crabYaw=new THREE.Quaternion(),crabUp=new THREE.Vector3(0,1,0),crabPos=new THREE.Vector3(),crabScale=new THREE.Vector3(),crabIdentity=new THREE.Quaternion();
-function writeCrab(meshes,counts,x,z,heading,size,phase,moving,eating,time){
+function writeCrab(meshes,counts,x,z,heading,size,phase,moving,eating,time,level=0){
  crabYaw.setFromAxisAngle(crabUp,heading);crabRoot.compose(crabPos.set(x,grove.heightAt(x,z)||0,z),crabYaw,crabScale.setScalar(size));
- crabParts(phase,moving,eating,time,(kind,pos,scale,q)=>{crabLocal.compose(crabPos.set(...pos),q||crabIdentity,crabScale.set(...scale));crabMatrix.multiplyMatrices(crabRoot,crabLocal);meshes[kind].setMatrixAt(counts[kind]++,crabMatrix);});
+ crabParts(phase,moving,eating,time,(kind,pos,scale,q)=>{if(level>0&&['eyes','antennae','joints'].includes(kind))return;crabLocal.compose(crabPos.set(...pos),q||crabIdentity,crabScale.set(...scale));crabMatrix.multiplyMatrices(crabRoot,crabLocal);meshes[kind].setMatrixAt(counts[kind]++,crabMatrix);});
 }
-function finishCrabMeshes(meshes,counts){for(const [key,m] of Object.entries(meshes)){m.count=counts[key];m.instanceMatrix.needsUpdate=true;}}
+function finishCrabMeshes(meshes,counts){for(const [key,m] of Object.entries(meshes)){uploadInstances(m,counts[key]);}}
 
- let lastView=null;
- function sync(view){let ti=0,fi=0,ni=0,si=0;
-  for(const p of grove.plants){let frondIndex=0;const distance=Math.hypot(p.x-view.x,p.z-view.z);
+ const plantMeshes={trunks,trunksMid,trunksFar,fronds,frondsMid,frondsFar,frondsDistant,nuts,nutsMid,nutsFar,straps};
+ let lastView=null,lodElapsed=1;
+ function sync(view){const counts=Object.fromEntries(Object.keys(plantMeshes).map(k=>[k,0]));const livePlants=new Set(),liveNuts=new Set();
+  const put=(key,pos,rot,scale,base)=>setPart(plantMeshes[key],counts[key]++,pos,rot,scale,base);
+  for(const p of grove.plants){livePlants.add(p.id);const d=Math.hypot(p.x-view.x,p.z-view.z),level=lodBand(d,palmLevels.get(p.id));palmLevels.set(p.id,level);const base=grove.heightAt(p.x,p.z)||0;
    palmParts(p,(kind,pos,rot,scale)=>{
-    if(kind==='trunk')setPart(trunks,ti++,pos,rot,scale);
-    if(kind==='frond'){const j=frondIndex++;if(distance>100&&j%3!==0||distance>40&&distance<=100&&j%2!==0)return;setPart(fronds,fi++,pos,rot,scale);}
-    if(kind==='strap'&&distance<100)setPart(straps,si++,pos,rot,scale);
-    if(kind==='nut'&&distance<80)setPart(nuts,ni++,pos,rot,scale);
+    if(kind==='trunk')put(['trunks','trunksMid','trunksFar','trunksFar'][level],pos,rot,scale,base);
+    if(kind==='frond')put(['fronds','frondsMid','frondsFar','frondsDistant'][level],pos,rot,scale,base);
+    if(kind==='strap'&&d<90)put('straps',pos,rot,scale,base);
+    if(kind==='nut'&&d<60)put(d<12?'nuts':d<30?'nutsMid':'nutsFar',pos,rot,scale,base);
    });
   }
-  for(const n of grove.nuts)if(Math.hypot(n.x-view.x,n.z-view.z)<80)setPart(nuts,ni++,[n.x,.25,n.z],[.3,n.id,.3],[1,.72,1.25]);
-  for(const [m,count] of [[trunks,ti],[fronds,fi],[nuts,ni],[straps,si]]){m.count=count;m.instanceMatrix.needsUpdate=true;}
-  lastView={x:view.x,z:view.z};
+  for(const n of grove.nuts){liveNuts.add(n.id);const d=Math.hypot(n.x-view.x,n.z-view.z),level=lodBand(d,nutLevels.get(n.id),[12,30,60],2);nutLevels.set(n.id,level);if(level<3)put(['nuts','nutsMid','nutsFar'][level],[n.x,.25,n.z],[.3,n.id,.3],[1,.72,1.25]);}
+  for(const id of palmLevels.keys())if(!livePlants.has(id))palmLevels.delete(id);for(const id of nutLevels.keys())if(!liveNuts.has(id))nutLevels.delete(id);
+  for(const [key,m] of Object.entries(plantMeshes)){uploadInstances(m,counts[key]);}
+  lastView={x:view.x,z:view.z};lodElapsed=0;
  }
  function update(view,dt,paused=false){
-  if(!lastView||Math.hypot(view.x-lastView.x,view.z-lastView.z)>12)sync(view);
-  const active=new Set(grove.crabs.map(c=>c.id));for(const id of crabVisuals.keys())if(!active.has(id))crabVisuals.delete(id);
-  const counts=Object.fromEntries(Object.keys(crabMeshes).map(k=>[k,0])),blend=1-Math.exp(-dt*10);
-  for(const c of grove.crabs){if(Math.hypot(c.x-view.x,c.z-view.z)>65)continue;
+  lodElapsed+=dt;if(!lastView||Math.hypot(view.x-lastView.x,view.z-lastView.z)>2&&lodElapsed>.2)sync(view);
+  const active=new Set(grove.crabs.map(c=>c.id));for(const id of crabVisuals.keys())if(!active.has(id)){crabVisuals.delete(id);crabLevels.delete(id);}for(const id of crabLevels.keys())if(!active.has(id))crabLevels.delete(id);
+  const counts=Object.fromEntries(Object.keys(crabMeshes).map(k=>[k,0])),midCounts=Object.fromEntries(Object.keys(crabMidMeshes).map(k=>[k,0])),blend=1-Math.exp(-dt*10);let farCount=0;
+  for(const c of grove.crabs){const distance=Math.hypot(c.x-view.x,c.z-view.z),level=lodBand(distance,crabLevels.get(c.id),[12,30,65],2);crabLevels.set(c.id,level);if(level===3)continue;
    let v=crabVisuals.get(c.id);if(!v){v={x:c.x,z:c.z,heading:c.heading,phase:c.id*.7,time:0};crabVisuals.set(c.id,v);}
    const nx=v.x+(c.x-v.x)*blend,nz=v.z+(c.z-v.z)*blend;
    // Display interpolation must also obey the terrain travel test; never glide over water.
    const legal=grove.canCrabTravel(v,{x:nx,z:nz});const dx=legal?nx-v.x:c.x-v.x,dz=legal?nz-v.z:c.z-v.z;v.x+=dx;v.z+=dz;v.phase+=Math.hypot(dx,dz)*5;v.time+=paused?0:dt;
    v.heading+=Math.atan2(Math.sin(c.heading-v.heading),Math.cos(c.heading-v.heading))*blend;
-   writeCrab(crabMeshes,counts,v.x,v.z,v.heading,.55+.45*smooth(0,18,c.age),v.phase,dt>0?Math.min(1,Math.hypot(dx,dz)/dt):0,c.action==='Eating coconut',v.time);
+   const size=.55+.45*smooth(0,18,c.age);
+   if(level<2)writeCrab(level===0?crabMeshes:crabMidMeshes,level===0?counts:midCounts,v.x,v.z,v.heading,size,v.phase,dt>0?Math.min(1,Math.hypot(dx,dz)/dt):0,c.action==='Eating coconut',v.time,level);
+   else{crabYaw.setFromAxisAngle(crabUp,v.heading);crabRoot.compose(crabPos.set(v.x,grove.heightAt(v.x,v.z)||0,v.z),crabYaw,crabScale.setScalar(size));crabFar.setMatrixAt(farCount++,crabRoot);}
   }
-  finishCrabMeshes(crabMeshes,counts);
+  finishCrabMeshes(crabMeshes,counts);finishCrabMeshes(crabMidMeshes,midCounts);uploadInstances(crabFar,farCount);
  }
- return {group:vegetation,sync,update,meshes:{trunks,fronds,nuts,straps,...crabMeshes},colliders:()=>grove.plants.filter(p=>p.growth>30).map(p=>({x:p.x,z:p.z,radius:.20}))};
+ return {group:vegetation,sync,update,meshes:{...plantMeshes,...crabMeshes,...Object.fromEntries(Object.entries(crabMidMeshes).map(([k,m])=>['mid_'+k,m])),crabFar},colliders:()=>grove.plants.filter(p=>p.growth>30).map(p=>({x:p.x,z:p.z,radius:.20}))};
 }

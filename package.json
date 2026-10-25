@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test browser/cooper-west/terrain.test.js browser/cooper-west/living-world.test.js scripts/site.test.cjs scripts/living-preview.test.mjs",
+    "test": "node --test browser/cooper-west/terrain.test.js browser/cooper-west/living-world.test.js browser/cooper-west/lod.test.js scripts/site.test.cjs scripts/living-preview.test.mjs",
     "build": "node scripts/build-site.cjs",
     "start": "node scripts/serve.cjs"
   },

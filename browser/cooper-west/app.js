@@ -1,3 +1,4 @@
+import {createFoliageLOD} from './foliage-lod.js';
 import {createLivingWorld} from './living-world.js';
 import {createLivingVisuals} from './living-visuals.js';
 import * as THREE from './vendor/three.module.js';
@@ -29,17 +30,11 @@ scene.add(new THREE.Mesh(terrain,new THREE.MeshLambertMaterial({vertexColors:tru
 
 function merge(geos){const ps=[],ns=[],cs=[];for(const [geometry,color] of geos){const g=geometry.index?geometry.toNonIndexed():geometry,p=g.getAttribute('position'),n=g.getAttribute('normal');for(let i=0;i<p.count;i++){ps.push(p.getX(i),p.getY(i),p.getZ(i));ns.push(n.getX(i),n.getY(i),n.getZ(i));cs.push(color.r,color.g,color.b);}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(ps,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(ns,3));g.setAttribute('color',new THREE.Float32BufferAttribute(cs,3));return g;}
 const brown=new THREE.Color('#8a7956'),leaf=new THREE.Color('#46784a'),lightleaf=new THREE.Color('#6e914e');
-function branch(a,b,r0,r1){const av=new THREE.Vector3(...a),bv=new THREE.Vector3(...b),delta=bv.clone().sub(av);const g=new THREE.CylinderGeometry(r1,r0,delta.length(),5,1);g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize()));g.translate(...av.add(bv).multiplyScalar(.5).toArray());return g;}
-function pisonia(){let parts=[[branch([0,0,0],[.3,4.4,0],.32,.16),brown]];for(let i=0;i<4;i++){const a=i*1.57+.2,b=[Math.cos(a)*2.8,5.8+(i%2)*.6,Math.sin(a)*2.8];parts.push([branch([.2,3.6,0],b,.16,.04),brown]);const g=new THREE.IcosahedronGeometry(1,0);g.scale(3.4,1.25,2.8);g.rotateY(a);g.translate(...b);parts.push([g,i%2?leaf:lightleaf]);}return merge(parts);}
 function shrub(){return merge([[-.6,.6,0],[.6,.8,0],[0,.5,.6]].map((p,i)=>{const g=new THREE.IcosahedronGeometry(1,0);g.scale(1.1,.9,1);g.translate(...p);return [g,i%2?lightleaf:leaf];}));}
-function fern(){let v=[];for(let i=0;i<7;i++){let a=i*.897;for(let j=0;j<3;j++){const t=j/3,u=(j+1)/3;function p(s,k){return [Math.cos(a)*1.2*s+Math.sin(a)*.22*k*Math.sin(Math.PI*s),.15+.8*Math.sin(s*2.1),Math.sin(a)*1.2*s-Math.cos(a)*.22*k*Math.sin(Math.PI*s)];}v.push(...p(t,-1),...p(u,-1),...p(u,1),...p(t,-1),...p(u,1),...p(t,1));}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.computeVertexNormals();return merge([[g,lightleaf]]);}
+function fern(steps=3){let v=[];for(let i=0;i<7;i++){let a=i*.897;for(let j=0;j<steps;j++){const t=j/steps,u=(j+1)/steps;function p(s,k){return [Math.cos(a)*1.2*s+Math.sin(a)*.22*k*Math.sin(Math.PI*s),.15+.8*Math.sin(s*2.1),Math.sin(a)*1.2*s-Math.cos(a)*.22*k*Math.sin(Math.PI*s)];}v.push(...p(t,-1),...p(u,-1),...p(u,1),...p(t,-1),...p(u,1),...p(t,1));}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.computeVertexNormals();return merge([[g,lightleaf]]);}
 const vegetationGroup=new THREE.Group();scene.add(vegetationGroup);const colliders=[];
-for(const [type,make] of Object.entries({pisonia,shrub,fern})){
- const plants=meta.vegetation.filter(p=>p.type===type),g=make(),mat=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
- const im=new THREE.InstancedMesh(g,mat,plants.length),dummy=new THREE.Object3D();
- plants.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.rotation.y=p.rotation;dummy.scale.setScalar(p.scale);dummy.updateMatrix();im.setMatrixAt(i,dummy.matrix);if(type==='palm'||type==='pisonia')colliders.push({x:p.x,z:p.z,radius:type==='palm'?.18:.34});});
- im.instanceMatrix.needsUpdate=true;im.computeBoundingSphere();vegetationGroup.add(im);
-}
+for(const plant of meta.vegetation)if(plant.type==='pisonia')colliders.push({x:plant.x,z:plant.z,radius:.34});
+const foliageLOD=createFoliageLOD(vegetationGroup,meta,shrub,fern);
 const living=createLivingWorld(meta,heights),livingVisuals=createLivingVisuals(vegetationGroup,living),staticColliderCount=colliders.length;
 let lifePaused=false,lifeAccumulator=0,advancingYear=false;
 function refreshLife(){livingVisuals.sync(p);colliders.length=staticColliderCount;colliders.push(...livingVisuals.colliders());$('lifeStats').textContent=`Year ${(living.month/12).toFixed(1)} · ${living.plants.length} palms · ${living.nuts.length} coconuts · ${living.crabs.length} crabs${living.stats.capHits?' · population limit reached':''}`;}
@@ -74,7 +69,7 @@ let last=performance.now(),seconds=0,frames=0,elapsed=0,fps=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;seconds+=dt;frames++;elapsed+=dt;
  if(started&&!isAerial){const forward=(keys.has('KeyW')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-joy.y;const right=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x;const dx=-Math.sin(yaw)*forward+Math.cos(yaw)*right,dz=-Math.cos(yaw)*forward-Math.sin(yaw)*right;p=movePlayer(meta,heights,p,dx,dz,dt,keys.has('ShiftLeft')||keys.has('ShiftRight'),vegetationGroup.visible?colliders:[]);if(p.edge){$('notice').textContent='End of the loaded terrain patch · more island continues east';$('notice').style.display='block';}else $('notice').style.display='none';}
  if(started&&!lifePaused&&!advancingYear){lifeAccumulator+=dt*Number($('lifeSpeed').value)/60;while(lifeAccumulator>=1){living.step();lifeAccumulator--;refreshLife();}}
- livingVisuals.update(p,dt,lifePaused);
+ foliageLOD.update(p,dt);livingVisuals.update(p,dt,lifePaused);
  camera.position.set(p.x,p.y,p.z);camera.rotation.set(pitch,yaw,0);waterMaterial.uniforms.time.value=seconds;
  scene.fog.density=isAerial?.00015:.0014;renderer.render(scene,isAerial?aerial:camera);
  if(elapsed>.75){fps=Math.round(frames/elapsed);frames=0;elapsed=0;const depth=sampleHeight(meta,heights,p.x,p.z);$('location').textContent=`${isAerial?'Aerial overview':depth<-.7?'In the water':Math.abs(p.z-meta.landmarks.forest[2])<18?'Forest crossing':p.z<meta.landmarks.forest[2]?'North shore':'South shore'} · ${fps} FPS`;$('stats').textContent=`${renderer.info.render.triangles.toLocaleString()} triangles · ${renderer.info.render.calls} draws · living island`;}
