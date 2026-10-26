@@ -1,3 +1,4 @@
+import {createPalmCardGeometry,loadPalmCardMaterial} from './palm-card.js';
 import {createPalmFrond} from './palm-frond.js';
 import {smooth,palmCrownHeight,palmFrame} from './palm-frame.js';
 import {lodBand,uploadInstances} from './lod.js';
@@ -41,6 +42,11 @@ strapGeo.setAttribute('position',new THREE.Float32BufferAttribute(strapVerts,3))
 const youngLeaf=mat('#78a541');
 const make=(geo,material,count)=>{const m=new THREE.InstancedMesh(geo,material,count);m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;m.count=0;vegetation.add(m);return m;};
 const fronds=make(frondGeo,leaf,limit*9),frondsMid=make(createPalmFrond(1),leaf,limit*9),frondsFar=make(createPalmFrond(2),leaf,limit*9),frondsDistant=make(createPalmFrond(3),leaf,limit*9);
+const cardFronds=make(createPalmCardGeometry(),leaf,limit*9);cardFronds.visible=false;
+ let palmModeRequest=0;
+ async function setPalmMode(mode){const request=++palmModeRequest;if(mode==='geometry'){for(const mesh of [fronds,frondsMid,frondsFar,frondsDistant])mesh.visible=true;cardFronds.visible=false;return;}
+ const material=await loadPalmCardMaterial(Number(mode));if(request!==palmModeRequest)return;cardFronds.material=material;cardFronds.visible=true;for(const mesh of [fronds,frondsMid,frondsFar,frondsDistant])mesh.visible=false;
+ }
 const trunks=make(trunkGeo,bark,limit),trunksMid=make(new THREE.CylinderGeometry(.16,.29,1,5),bark,limit),trunksFar=make(new THREE.CylinderGeometry(.16,.29,1,3),bark,limit);
 const nuts=make(nutGeo,nutMat,limit*4),nutSimpleMat=mat('#ac9577'),nutsMid=make(new THREE.IcosahedronGeometry(1,1).scale(.34,.34,.46),nutSimpleMat,limit*4),nutsFar=make(new THREE.IcosahedronGeometry(1,0).scale(.34,.34,.46),nutSimpleMat,limit*4),straps=make(strapGeo,youngLeaf,limit*5);
 const palmLevels=new Map(),nutLevels=new Map(),crabLevels=new Map();
@@ -124,14 +130,14 @@ function writeCrab(meshes,counts,x,z,heading,size,phase,moving,eating,time,level
 }
 function finishCrabMeshes(meshes,counts){for(const [key,m] of Object.entries(meshes)){uploadInstances(m,counts[key]);}}
 
- const plantMeshes={trunks,trunksMid,trunksFar,fronds,frondsMid,frondsFar,frondsDistant,nuts,nutsMid,nutsFar,straps};
+ const plantMeshes={trunks,trunksMid,trunksFar,fronds,frondsMid,frondsFar,frondsDistant,nuts,nutsMid,nutsFar,straps,cardFronds};
  let lastView=null,lodElapsed=1;
  function sync(view){const counts=Object.fromEntries(Object.keys(plantMeshes).map(k=>[k,0]));const livePlants=new Set(),liveNuts=new Set();
   const put=(key,pos,rot,scale,base)=>setPart(plantMeshes[key],counts[key]++,pos,rot,scale,base);
   for(const p of grove.plants){livePlants.add(p.id);const d=Math.hypot(p.x-view.x,p.z-view.z),level=lodBand(d,palmLevels.get(p.id));palmLevels.set(p.id,level);const base=grove.heightAt(p.x,p.z)||0;
    palmParts(p,(kind,pos,rot,scale)=>{
     if(kind==='trunk')put(['trunks','trunksMid','trunksFar','trunksFar'][level],pos,rot,scale,base);
-    if(kind==='frond')put(['fronds','frondsMid','frondsFar','frondsDistant'][level],pos,rot,scale,base);
+    if(kind==='frond'){put(['fronds','frondsMid','frondsFar','frondsDistant'][level],pos,rot,scale,base);put('cardFronds',pos,rot,scale,base);}
     if(kind==='strap'&&d<90)put('straps',pos,rot,scale,base);
     if(kind==='nut'&&d<60)put(d<12?'nuts':d<30?'nutsMid':'nutsFar',pos,rot,scale,base);
    });
@@ -154,5 +160,5 @@ function finishCrabMeshes(meshes,counts){for(const [key,m] of Object.entries(mes
   }
   finishCrabMeshes(crabMeshes,counts);finishCrabMeshes(crabMidMeshes,midCounts);uploadInstances(crabFar,farCount);
  }
- return {group:vegetation,sync,update,meshes:{...plantMeshes,...crabMeshes,...Object.fromEntries(Object.entries(crabMidMeshes).map(([k,m])=>['mid_'+k,m])),crabFar},colliders:()=>grove.plants.filter(p=>p.growth>30).map(p=>({x:p.x,z:p.z,radius:.20}))};
+ return {group:vegetation,sync,update,setPalmMode,meshes:{...plantMeshes,...crabMeshes,...Object.fromEntries(Object.entries(crabMidMeshes).map(([k,m])=>['mid_'+k,m])),crabFar},colliders:()=>grove.plants.filter(p=>p.growth>30).map(p=>({x:p.x,z:p.z,radius:.20}))};
 }

@@ -1,0 +1,59 @@
+{
+  "source": "palm-frond.js createPalmFrond(0)",
+  "sourceSha256": "29827cf65db5a9918576db61091cbc030f4a2d7fcde6959d39442afe9d478417",
+  "bounds": {
+    "minX": -0.04,
+    "maxX": 4.340000190734863,
+    "minZ": -0.7121083521842957,
+    "maxZ": 0.7121083521842957
+  },
+  "referenceTriangles": 120,
+  "cardSegments": 6,
+  "cardTriangles": 12,
+  "projection": "top-down XZ; highest Y; unlit albedo and object-space normals; 2048x1024 supersample",
+  "limitations": "Curved card approximates rachis arch; individual pinna height and occlusion from edge-on views are not reproduced.",
+  "textures": [
+    {
+      "name": "palm-frond-256-albedo.png",
+      "width": 256,
+      "height": 128,
+      "sha256": "79cebe52df5a29c786322126f5ef3648ecc6cbab17c6c9973849887d1ed6516d",
+      "bytes": 5521
+    },
+    {
+      "name": "palm-frond-256-normal.png",
+      "width": 256,
+      "height": 128,
+      "sha256": "fc79d07fc10c1469fade4a9ede0370043e26efd27e6572d5035507e34801546b",
+      "bytes": 12269
+    },
+    {
+      "name": "palm-frond-512-albedo.png",
+      "width": 512,
+      "height": 256,
+      "sha256": "303a96095538c004688b8ad9903bd58591c8c79368bca36b209ac761d86a1306",
+      "bytes": 10027
+    },
+    {
+      "name": "palm-frond-512-normal.png",
+      "width": 512,
+      "height": 256,
+      "sha256": "0841132d42eb695906ac8635e7de7b14f13595d579db15fe44c435e189aa700f",
+      "bytes": 18183
+    },
+    {
+      "name": "palm-frond-1024-albedo.png",
+      "width": 1024,
+      "height": 512,
+      "sha256": "eca72d651576d4dc4ee65d9d9bd4426fa1b0062d7b5ca8f03af1f6e500bb7ea6",
+      "bytes": 15057
+    },
+    {
+      "name": "palm-frond-1024-normal.png",
+      "width": 1024,
+      "height": 512,
+      "sha256": "f88d5897ffbbd956710d0bade45307543816781c5c4055ea0826b784ae03bc36",
+      "bytes": 26620
+    }
+  ]
+}

@@ -38,3 +38,28 @@ test('crab walking is bounded, frame independent, speed scaled, and freezes on p
  const blocked=make();walkCrabVisual(blocked,target,1,1,false,()=>false);assert.deepEqual(blocked,make());
  const c=make();for(let i=0;i<1200;i++)walkCrabVisual(c,target,1/60);assert(Math.abs(c.x-6)<1e-8);
 });
+
+import {createPalmCardGeometry,loadPalmCardMaterial,PALM_BAKE_BOUNDS} from './palm-card.js';
+import {createHash} from 'node:crypto';import {inflateSync} from 'node:zlib';
+test('palm bake PNGs preserve cutouts and match their source and recorded hashes',()=>{
+ const report=JSON.parse(fs.readFileSync(new URL('./palm-bake.json',import.meta.url))),source=fs.readFileSync(new URL('./palm-frond.js',import.meta.url));
+ assert.equal(createHash('sha256').update(source).digest('hex'),report.sourceSha256);assert.deepEqual(report.bounds,PALM_BAKE_BOUNDS);
+ for(const texture of report.textures){const png=fs.readFileSync(new URL('./'+texture.name,import.meta.url));assert.equal(createHash('sha256').update(png).digest('hex'),texture.sha256);assert.equal(png.readUInt32BE(16),texture.width);assert.equal(png.readUInt32BE(20),texture.height);assert.equal(png[25],6);
+ const data=[];for(let pos=8;pos<png.length;){const length=png.readUInt32BE(pos),type=png.toString('ascii',pos+4,pos+8);assert(pos+length+12<=png.length);if(type==='IDAT')data.push(png.subarray(pos+8,pos+8+length));pos+=length+12;}
+ const pixels=inflateSync(Buffer.concat(data));assert.equal(pixels.length,(texture.width*4+1)*texture.height);let covered=0;
+ for(let y=0;y<texture.height;y++){assert.equal(pixels[y*(texture.width*4+1)],0);if(texture.name.includes('albedo'))for(let x=0;x<texture.width;x++)if(pixels[y*(texture.width*4+1)+1+x*4+3]>=128)covered++;}
+ if(texture.name.includes('albedo'))assert(covered/(texture.width*texture.height)>.23&&covered/(texture.width*texture.height)<.25);
+ }
+});
+test('curved palm card keeps its winding, texture orientation and reduced geometry',()=>{
+ const g=createPalmCardGeometry();assert.equal(g.attributes.position.count/3,12);assert.equal(g.attributes.uv.getY(0),0);assert.equal(g.attributes.uv.getY(1),1);
+ for(let i=0;i<g.attributes.position.count;i++){assert(Number.isFinite(g.attributes.position.getY(i)));assert(g.attributes.normal.getY(i)>0);}
+ g.computeBoundingBox();assert(Math.abs(g.boundingBox.min.x-PALM_BAKE_BOUNDS.minX)<1e-6);assert(g.boundingBox.max.y>0);g.dispose();
+});
+test('palm card switch loads matching maps, transforms baked normals per instance, and restores geometry',async()=>{
+ const original=THREE.TextureLoader.prototype.loadAsync,paths=[];THREE.TextureLoader.prototype.loadAsync=async function(url){paths.push(url);return new THREE.Texture();};
+ try{const material=await loadPalmCardMaterial(512);assert.equal(material.alphaTest,.5);assert.equal(material.map.colorSpace,THREE.SRGBColorSpace);assert.equal(material.normalMap.colorSpace,THREE.NoColorSpace);assert.equal(material.map.generateMipmaps,false);assert.deepEqual(paths,['palm-frond-512-albedo.png','palm-frond-512-normal.png']);
+ const shader={vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};material.onBeforeCompile(shader);assert(shader.vertexShader.includes('normalMatrix*mat3(instanceMatrix)'));assert(shader.fragmentShader.includes('normal*=faceDirection'));assert(!shader.fragmentShader.includes('#include <normal_fragment_maps>'));
+ const meta=JSON.parse(fs.readFileSync(new URL('./section.json',import.meta.url))),buf=fs.readFileSync(new URL('./height.f32',import.meta.url)),w=createLivingWorld(meta,new Float32Array(buf.buffer,buf.byteOffset,buf.length/4));w.plants=w.plants.slice(0,1);w.nuts=[];w.crabs=[];const v=createLivingVisuals(new THREE.Group(),w);v.sync(w.plants[0]);assert.equal(v.meshes.cardFronds.visible,false);await v.setPalmMode('512');assert.equal(v.meshes.cardFronds.visible,true);assert.equal(v.meshes.fronds.visible,false);assert.equal(v.meshes.cardFronds.count,9);await v.setPalmMode('geometry');assert.equal(v.meshes.cardFronds.visible,false);assert.equal(v.meshes.fronds.visible,true);
+ }finally{THREE.TextureLoader.prototype.loadAsync=original;}
+});
