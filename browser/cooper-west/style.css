@@ -2,3 +2,5 @@
 
 
 #lifePanel{position:fixed;right:18px;bottom:90px;max-width:400px;padding:12px;background:#173f38ed;color:#edf4df;border-radius:10px;font-size:13px}#lifeStats{margin-bottom:8px}.lifeControls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.lifeControls button,.lifeControls select{font:inherit;padding:6px;border:1px solid #86a58a;border-radius:5px;background:#28574a;color:#edf4df}.lifeControls label{font-size:11px}@media(max-width:650px){#lifePanel{right:10px;bottom:76px;max-width:calc(100vw - 150px);padding:8px;font-size:11px}.lifeControls{gap:4px}.lifeControls button{font-size:11px;padding:5px}}
+
+#palmPanel{position:fixed;left:14px;top:160px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:calc(100vw - 28px);padding:10px;background:#173e38eb;border-radius:12px;color:#f0f0d3;font-size:13px}#palmPanel select{font:inherit;color:inherit;background:#28574b;padding:7px;border:1px solid #88a78c;border-radius:6px}#palmPanel button{font-size:13px;padding:7px}#palmStatus{opacity:.8} @media(max-width:600px){#palmPanel{top:145px}#palmStatus{display:none}}
