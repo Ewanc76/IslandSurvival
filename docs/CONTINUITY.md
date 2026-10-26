@@ -1,3 +1,28 @@
+## Frond geometry revision 04 — October 25, 2026
+
+The user's stylized palm reference calls for slender leaflets swept forward toward the frond tip, rather than blades extending approximately perpendicular to the midrib. The close mesh now has twelve mirrored pairs of tapered, folded pinnae, with a forward sweep and a little additional droop relative to the frond curve. The continuous central rachis and 4.3 m frond length are retained. Mid-distance geometry uses fewer folded outlines; distant ribbons sample the new leaflet envelope. This updates geometry in the island, not a baked palm texture; the revised mesh can be used as the source for a later palm bake.
+
+All eighteen automated checks pass, including mirrored forward sweep, reasonable blade width, droop, finite normals, decreasing LOD cost, complete crowns and exact trunk/crown joins. Close-up geometry was inspected using an orthographic software projection. Attempts to capture a headless browser preview returned no screenshot, so no new WebGL appearance or device-FPS claim is made. Simulation rules and populations are unchanged. The reference image itself is not redistributed.
+
+---
+# Canopy revision 03 — October 25, 2026
+
+The review candidate fixes trunk/crown alignment and uses actual rendered twig-cluster footprints for static tree shade while retaining palm-neighbour competition. Seventeen checks/build pass. One paired 36.5-year run reproduced the screenshot baseline exactly, but candidate palms rose slightly (4,398 vs 4,275); shade alone has not solved density or the technical ceiling. Other species' root/soil demands remain unmodelled. No new phone FPS claim. Details/results: LIVING-ISLAND.md and docs/experiments/canopy-comparison.json. Main/Pages remain unchanged.
+
+---
+
+# LOD revision 02 — October 24, 2026
+
+Ewan reports steady 30 FPS on living-island v01, with a noticeable 100× ecology hitch and the earlier foliage absent. The review branch now restores Mobile Test 08 branch-following foliage and adds geometry LODs for canopy, palms, coconuts and crabs. Full details and limits are in LIVING-ISLAND.md. Fifteen automated checks/build pass; new phone/WebGL validation remains pending. Main/Pages remain unchanged.
+
+---
+
+# Living island candidate — October 24, 2026
+
+Cooper West now has an integration candidate with living palms, husked coconuts and coconut crabs. See [LIVING-ISLAND.md](LIVING-ISLAND.md) for scope, controls and validation. This is prepared browser source; it has not been merged or deployed, and phone/browser validation remains pending. The Godot build is unchanged.
+
+---
+
 # Current shared development — 20 October 2026
 
 Read [START-HERE.md](../START-HERE.md) first. It is the short, current PC/Android handoff. The standalone Cooper West terrain preview has source, height data and tests in this repo. User PC playtest passed (60 FPS shown); physical Android performance remains pending. Mobile Test 08 source and full Godot game source are not imported.
@@ -142,3 +167,4 @@ Start with Island-Survival-Sol-Chat-Recovery-v17.zip. Check chat recovery and br
 - Ewan's visible project conversation: successful forest transition, successful stick collection, perception-range experiment, and request for housekeeping.
 - Retrieved development conversation records: original slice constraints, companion principles, v16 history policy, v17 recovery details, and recent reported checks.
 - No new game tests, source modifications, log diagnosis, artifact moves, or deletions were performed in this housekeeping pass.
+

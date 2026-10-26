@@ -1,3 +1,9 @@
+# Living island review candidate
+
+The Cooper West browser source now integrates the approved living palms, husked coconuts and coconut crabs. See [integration notes](docs/LIVING-ISLAND.md) for controls, scope and validation. Review-branch candidate only: main/Pages and the Godot game have not been updated. Historical project orientation follows.
+
+---
+
 # Island Survival — start here
 
 Updated 2026-10-20. This file is the short entry point for a fresh PC or Android Codex chat. Read this before the historical continuity document.
@@ -38,3 +44,4 @@ Read `AGENTS.md`, [browser notes](browser/cooper-west/README.md) and [shared dev
 2. Refine density, materials and water from actual walking feedback.
 3. Locate/import the real Mobile Test 08 source and integrate this section while preserving its tested controls and LODs.
 4. Expand eastward using shared coordinates and deterministic plant seeds, one section at a time.
+

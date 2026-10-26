@@ -1,1 +1,14 @@
-{"name":"island-survival-shared-source","version":"0.1.0","private":true,"type":"module","scripts":{"test":"node --test browser/cooper-west/terrain.test.js scripts/site.test.cjs","build":"node scripts/build-site.cjs","start":"node scripts/serve.cjs"},"engines":{"node":">=20"}}
+{
+  "name": "island-survival-shared-source",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test browser/cooper-west/terrain.test.js browser/cooper-west/living-world.test.js browser/cooper-west/lod.test.js scripts/site.test.cjs scripts/living-preview.test.mjs",
+    "build": "node scripts/build-site.cjs",
+    "start": "node scripts/serve.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

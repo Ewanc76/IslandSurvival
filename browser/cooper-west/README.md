@@ -1,3 +1,9 @@
+# Living island integration candidate
+
+Living palms and coconut crabs now share this terrain. See [integration notes](../../docs/LIVING-ISLAND.md). Run `npm test` and `npm run build`; the build also creates `Cooper-West-Living-Island.html` for direct browser opening. Automated geometry and control checks pass; human/browser review is pending. Historical baseline notes follow.
+
+---
+
 # Cooper West browser source
 
 Standalone Three.js terrain walk, first version, 2026-10-20. This is the source used for the shared PC/Android playtest, not a Godot export or the missing Mobile Test 08 implementation.
@@ -15,3 +21,4 @@ Vegetation is authored low-poly approximation: branched canopy trees, palms, shr
 Six terrain tests cover dimensions/sampling, the full crossing, movement scale, collision and crop limits. Headless Edge keyboard and emulated touch input/rendering passed without page errors. User reported the PC preview works great; screenshot displayed 60 FPS. Physical Android test pending.
 
 Credits: NOAA OCS shoreline via PacIOOS, https://www.pacioos.hawaii.edu/metadata/pat_ocs_all_shoreline.html ; NOAA/PIBHMC/PacIOOS bathymetry, https://pae-paha.pacioos.hawaii.edu/erddap/griddap/pibhmc_bathy_5m_palmyra.html . Three.js 0.180.0 is MIT licensed, see vendor/THREE-LICENSE.txt. No Google Earth screenshots are included in the public runtime/source import.
+
