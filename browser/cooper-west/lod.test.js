@@ -27,3 +27,14 @@ test('palm pinnae sweep forward, taper and droop while LODs retain the frond env
  let previous=Infinity;for(let level=0;level<4;level++){const g=createPalmFrond(level);g.computeBoundingBox();assert(Math.abs(g.boundingBox.max.x-4.3)<1e-5);assert(g.boundingBox.max.z<1);assert(g.attributes.position.count<previous);previous=g.attributes.position.count;for(const value of g.attributes.normal.array)assert(Number.isFinite(value));g.dispose();}
 });
 
+
+import {walkCrabVisual} from './living-visuals.js';
+test('crab walking is bounded, frame independent, speed scaled, and freezes on pause',()=>{
+ const make=()=>({x:0,z:0,heading:0,phase:0}),target={x:6,z:0};
+ const a=make(),b=make();for(let i=0;i<60;i++)walkCrabVisual(a,target,1/60);for(let i=0;i<30;i++)walkCrabVisual(b,target,1/30);
+ assert(Math.abs(a.x-.3)<1e-10);assert(Math.abs(a.x-b.x)<1e-10);
+ walkCrabVisual(a,target,1,100);assert.equal(a.x,6);
+ const frozen={...b};walkCrabVisual(b,target,60,1,true);assert.deepEqual(b,frozen);
+ const blocked=make();walkCrabVisual(blocked,target,1,1,false,()=>false);assert.deepEqual(blocked,make());
+ const c=make();for(let i=0;i<1200;i++)walkCrabVisual(c,target,1/60);assert(Math.abs(c.x-6)<1e-8);
+});

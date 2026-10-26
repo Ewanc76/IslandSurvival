@@ -4,6 +4,19 @@ import {lodBand,uploadInstances} from './lod.js';
 import * as THREE from './vendor/three.module.js';
 import {CRAB_MAX} from '../ecology/crabs.js';
 // Shared procedural forms copied from the approved palm-lab models (artifact v6).
+// Presentation only: monthly ecology positions remain authoritative.
+export function walkCrabVisual(v,target,dt,speed=1,paused=false,canTravel=()=>true){
+ if(paused||dt<=0)return {dx:0,dz:0};
+ const dx=target.x-v.x,dz=target.z-v.z,distance=Math.hypot(dx,dz);
+ if(distance<1e-8)return {dx:0,dz:0};
+ const step=Math.min(distance,.3*Math.max(0,speed)*dt),nx=v.x+dx/distance*step,nz=v.z+dz/distance*step;
+ // A rejected segment must never fall back to teleporting to the destination.
+ if(!canTravel(v,{x:nx,z:nz}))return {dx:0,dz:0};
+ v.x=nx;v.z=nz;v.phase+=step*5;
+ const heading=Math.atan2(dx,dz),blend=1-Math.exp(-dt*10);
+ v.heading+=Math.atan2(Math.sin(heading-v.heading),Math.cos(heading-v.heading))*blend;
+ return {dx:dx/distance*step,dz:dz/distance*step};
+}
 export function createLivingVisuals(parent,grove){
  const limit=grove.capacity,scene=parent;
  const mat=color=>new THREE.MeshStandardMaterial({color,roughness:1,flatShading:true,side:THREE.DoubleSide});
@@ -128,16 +141,13 @@ function finishCrabMeshes(meshes,counts){for(const [key,m] of Object.entries(mes
   for(const [key,m] of Object.entries(plantMeshes)){uploadInstances(m,counts[key]);}
   lastView={x:view.x,z:view.z};lodElapsed=0;
  }
- function update(view,dt,paused=false){
+ function update(view,dt,paused=false,speed=1){
   lodElapsed+=dt;if(!lastView||Math.hypot(view.x-lastView.x,view.z-lastView.z)>2&&lodElapsed>.2)sync(view);
   const active=new Set(grove.crabs.map(c=>c.id));for(const id of crabVisuals.keys())if(!active.has(id)){crabVisuals.delete(id);crabLevels.delete(id);}for(const id of crabLevels.keys())if(!active.has(id))crabLevels.delete(id);
-  const counts=Object.fromEntries(Object.keys(crabMeshes).map(k=>[k,0])),midCounts=Object.fromEntries(Object.keys(crabMidMeshes).map(k=>[k,0])),blend=1-Math.exp(-dt*10);let farCount=0;
+  const counts=Object.fromEntries(Object.keys(crabMeshes).map(k=>[k,0])),midCounts=Object.fromEntries(Object.keys(crabMidMeshes).map(k=>[k,0]));let farCount=0;
   for(const c of grove.crabs){const distance=Math.hypot(c.x-view.x,c.z-view.z),level=lodBand(distance,crabLevels.get(c.id),[12,30,65],2);crabLevels.set(c.id,level);if(level===3)continue;
    let v=crabVisuals.get(c.id);if(!v){v={x:c.x,z:c.z,heading:c.heading,phase:c.id*.7,time:0};crabVisuals.set(c.id,v);}
-   const nx=v.x+(c.x-v.x)*blend,nz=v.z+(c.z-v.z)*blend;
-   // Display interpolation must also obey the terrain travel test; never glide over water.
-   const legal=grove.canCrabTravel(v,{x:nx,z:nz});const dx=legal?nx-v.x:c.x-v.x,dz=legal?nz-v.z:c.z-v.z;v.x+=dx;v.z+=dz;v.phase+=Math.hypot(dx,dz)*5;v.time+=paused?0:dt;
-   v.heading+=Math.atan2(Math.sin(c.heading-v.heading),Math.cos(c.heading-v.heading))*blend;
+   const {dx,dz}=walkCrabVisual(v,c,dt,speed,paused,(a,b)=>grove.canCrabTravel(a,b));v.time+=paused?0:dt;
    const size=.55+.45*smooth(0,18,c.age);
    if(level<2)writeCrab(level===0?crabMeshes:crabMidMeshes,level===0?counts:midCounts,v.x,v.z,v.heading,size,v.phase,dt>0?Math.min(1,Math.hypot(dx,dz)/dt):0,c.action==='Eating coconut',v.time,level);
    else{crabYaw.setFromAxisAngle(crabUp,v.heading);crabRoot.compose(crabPos.set(v.x,grove.heightAt(v.x,v.z)||0,v.z),crabYaw,crabScale.setScalar(size));crabFar.setMatrixAt(farCount++,crabRoot);}
