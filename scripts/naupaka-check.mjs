@@ -1,0 +1,7 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';
+import {createLivingWorld} from '../browser/cooper-west/living-world.js';
+import {naupakaStage} from '../browser/ecology/naupaka.js';
+const root=new URL('../browser/cooper-west/',import.meta.url),meta=JSON.parse(fs.readFileSync(new URL('section.json',root))),buf=fs.readFileSync(new URL('height.f32',root)),heights=new Float32Array(buf.buffer,buf.byteOffset,buf.length/4),w=createLivingWorld(meta,heights);
+const snapshot=()=>{const s=w.summary();return{year:w.month/12,palms:s.plants,nuts:s.nuts,crabs:s.crabs,naupaka:s.naupaka,seeds:s.naupakaSeeds,stages:w.naupaka.reduce((a,p)=>{const key=naupakaStage(p);a[key]=(a[key]||0)+1;return a;},{}),naupakaStats:s.naupakaStats,nutrientError:s.total-s.imported,minimumMineral:Math.min(...w.cells.map(c=>c.mineral))};};
+const rows=[snapshot()];for(let month=0;month<1200;month++){w.step();const s=w.summary();assert(Math.abs(s.total-s.imported)<1e-6);assert(w.cells.every(c=>c.mineral>=-1e-10));assert(w.naupaka.length+w.naupakaSeeds.length<=2400);if(w.month%120===0){rows.push(snapshot());console.log(JSON.stringify(rows.at(-1)));}}
+const out=new URL('../docs/experiments/naupaka-century.json',import.meta.url);fs.mkdirSync(new URL('./',out),{recursive:true});fs.writeFileSync(out,JSON.stringify({description:'Single deterministic seed 731 terrain run; experimental rates, not calibration or proof of equilibrium',rows},null,2)+'\n');
