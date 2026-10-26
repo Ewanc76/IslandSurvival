@@ -9,8 +9,7 @@ export function createFoliageLOD(parent,meta,shrub,fern){
   const rows=meta.vegetation.filter((p,i)=>p.type==='pisonia'&&i%3===variant);
   batches.push(make(rows,[0,1,2,3].map(level=>combine(treeVariant(802+variant*119,false,level)))));
  }
- const lowShrub=combine([new THREE.PlaneGeometry(2.8,1.8).translate(0,.8,0),new THREE.PlaneGeometry(2.8,1.8).rotateY(Math.PI/2).translate(0,.8,0)].map(g=>{g.setAttribute('color',new THREE.Float32BufferAttribute(Array.from({length:g.attributes.position.count*3},(_,i)=>[.22,.42,.18][i%3]),3));return g.toNonIndexed();}));
- batches.push(make(meta.vegetation.filter(p=>p.type==='shrub'),[shrub(),shrub(),lowShrub,null]));
+ // Shoreline shrubs are rendered by the living naupaka system.
  batches.push(make(meta.vegetation.filter(p=>p.type==='fern'),[fern(3),fern(2),fern(1),null]));
  function make(rows,geometries){const states=new Int8Array(rows.length).fill(-1),matrices=rows.map(p=>{dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.rotation,0);dummy.scale.setScalar(p.scale);dummy.updateMatrix();return dummy.matrix.clone();});const meshes=geometries.map(g=>{if(!g)return null;const m=new THREE.InstancedMesh(g,material,rows.length);m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;parent.add(m);return m;});return{rows,states,matrices,meshes};}
  let last=null,elapsed=1;

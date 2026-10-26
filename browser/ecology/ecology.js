@@ -73,6 +73,7 @@ export class Grove {
   // Share finite uptake fairly, rather than starving neighbors by array order.
   const demand=new Map(),requests=new Map();
   for(const p of this.plants){const c=this.soilAt(p.x,p.z);const want=c?this.habitat(p.x,p.z)*lights.get(p.id)*c.moisture*.012:0;requests.set(p.id,want);if(c)demand.set(c,(demand.get(c)||0)+want);}
+  this.additionalPlantDemand?.(requests,demand);
   const allocations=new Map();for(const [c,want] of demand)allocations.set(c,Math.min(1,c.mineral/(want||1)));
   const deaths=[];
   for(const p of this.plants){p.age++;p.light=lights.get(p.id);const cell=this.soilAt(p.x,p.z),want=requests.get(p.id),uptake=want*(allocations.get(cell)||0);
@@ -86,6 +87,7 @@ export class Grove {
    }
   }
   for(const id of deaths)this.removePalm(id);
+  this.stepAdditionalPlants?.(requests,allocations);
   this.transportSeeds();
   if(this.crabEnabled)stepCrabs(this);
   const keep=[];
@@ -103,7 +105,8 @@ export class Grove {
  advance(months){if(!Number.isInteger(months)||months<0)throw Error('months must be a nonnegative integer');for(let i=0;i<months;i++)this.step();}
  summary(){const counts={Seedling:0,Juvenile:0,'Young palm':0,'Mature palm':0};for(const p of this.plants)counts[this.stage(p)]++;
   const mineral=this.cells.reduce((n,c)=>n+c.mineral,0),organic=this.cells.reduce((n,c)=>n+c.organic,0),plantN=this.plants.reduce((n,p)=>n+p.nutrient,0),seedN=this.nuts.reduce((n,p)=>n+p.nutrient,0),crabN=this.crabs.reduce((n,c)=>n+c.nutrient,0);
-  return {month:this.month,plants:this.plants.length,nuts:this.nuts.length,...counts,...this.stats,mineral,organic,plantN,seedN,floating:this.nuts.filter(n=>n.state==='floating').length,flotation:{...this.flotation},patches:this.patchSummary(),migrations:this.migrations,colonizations:this.colonizations,recolonizations:this.recolonizations,localCrashes:this.localCrashes,crabs:this.crabs.length,crabN,crabBorn:this.crabStats.born,crabDied:this.crabStats.died,crabStarved:this.crabStats.starved,crabMeals:this.crabStats.meals,crabCapHits:this.crabStats.capHits,animalN:this.animals,exported:this.exported,total:mineral+organic+plantN+seedN+this.animals+crabN+this.exported,imported:this.imported,extinctionMonth:this.extinctionMonth};
+  const additionalPlantN=this.additionalNutrientTotal?.()||0;
+  return {additionalPlantN,month:this.month,plants:this.plants.length,nuts:this.nuts.length,...counts,...this.stats,mineral,organic,plantN,seedN,floating:this.nuts.filter(n=>n.state==='floating').length,flotation:{...this.flotation},patches:this.patchSummary(),migrations:this.migrations,colonizations:this.colonizations,recolonizations:this.recolonizations,localCrashes:this.localCrashes,crabs:this.crabs.length,crabN,crabBorn:this.crabStats.born,crabDied:this.crabStats.died,crabStarved:this.crabStats.starved,crabMeals:this.crabStats.meals,crabCapHits:this.crabStats.capHits,animalN:this.animals,exported:this.exported,total:mineral+organic+plantN+seedN+this.animals+crabN+this.exported+additionalPlantN,imported:this.imported,extinctionMonth:this.extinctionMonth};
  }
 }
 export function createGrove(seed=731,scenario='recycling'){const g=new Grove(seed,scenario);

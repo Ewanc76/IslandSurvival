@@ -1,3 +1,4 @@
+import {createNaupakaVisuals} from './naupaka-visuals.js';
 import {createPalmCardGeometry,loadPalmCardMaterial} from './palm-card.js';
 import {createPalmFrond} from './palm-frond.js';
 import {smooth,palmCrownHeight,palmFrame} from './palm-frame.js';
@@ -22,7 +23,7 @@ export function createLivingVisuals(parent,grove){
  const limit=grove.capacity,scene=parent;
  const mat=color=>new THREE.MeshStandardMaterial({color,roughness:1,flatShading:true,side:THREE.DoubleSide});
  const bark=mat('#92714f'),leaf=mat('#517e36'),nutMat=mat('#ffffff');
-const vegetation=new THREE.Group();parent.add(vegetation);
+const vegetation=new THREE.Group();parent.add(vegetation);const naupakaVisuals=createNaupakaVisuals(vegetation,grove);
 // Whole coconut: a bulky tapered husk, with longitudinal coir ridges and sun-weathered fibers.
 // One shared colored mesh keeps fallen, floating, attached and germinating fruit inexpensive.
 const nutGeo=new THREE.BufferGeometry(),huskPositions=[],huskColors=[];
@@ -132,7 +133,7 @@ function finishCrabMeshes(meshes,counts){for(const [key,m] of Object.entries(mes
 
  const plantMeshes={trunks,trunksMid,trunksFar,fronds,frondsMid,frondsFar,frondsDistant,nuts,nutsMid,nutsFar,straps,cardFronds};
  let lastView=null,lodElapsed=1;
- function sync(view){const counts=Object.fromEntries(Object.keys(plantMeshes).map(k=>[k,0]));const livePlants=new Set(),liveNuts=new Set();
+ function sync(view){naupakaVisuals.sync(view);const counts=Object.fromEntries(Object.keys(plantMeshes).map(k=>[k,0]));const livePlants=new Set(),liveNuts=new Set();
   const put=(key,pos,rot,scale,base)=>setPart(plantMeshes[key],counts[key]++,pos,rot,scale,base);
   for(const p of grove.plants){livePlants.add(p.id);const d=Math.hypot(p.x-view.x,p.z-view.z),level=lodBand(d,palmLevels.get(p.id));palmLevels.set(p.id,level);const base=grove.heightAt(p.x,p.z)||0;
    palmParts(p,(kind,pos,rot,scale)=>{
@@ -160,5 +161,5 @@ function finishCrabMeshes(meshes,counts){for(const [key,m] of Object.entries(mes
   }
   finishCrabMeshes(crabMeshes,counts);finishCrabMeshes(crabMidMeshes,midCounts);uploadInstances(crabFar,farCount);
  }
- return {group:vegetation,sync,update,setPalmMode,meshes:{...plantMeshes,...crabMeshes,...Object.fromEntries(Object.entries(crabMidMeshes).map(([k,m])=>['mid_'+k,m])),crabFar},colliders:()=>grove.plants.filter(p=>p.growth>30).map(p=>({x:p.x,z:p.z,radius:.20}))};
+ return {group:vegetation,sync,update,setPalmMode,meshes:{...naupakaVisuals.meshes,...plantMeshes,...crabMeshes,...Object.fromEntries(Object.entries(crabMidMeshes).map(([k,m])=>['mid_'+k,m])),crabFar},colliders:()=>grove.plants.filter(p=>p.growth>30).map(p=>({x:p.x,z:p.z,radius:.20}))};
 }

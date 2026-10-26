@@ -1,0 +1,257 @@
+{
+  "description": "Single deterministic seed 731 terrain run; experimental rates, not calibration or proof of equilibrium",
+  "rows": [
+    {
+      "year": 0,
+      "palms": 1273,
+      "nuts": 420,
+      "crabs": 47,
+      "naupaka": 849,
+      "seeds": 0,
+      "stages": {
+        "Mature shrub": 843,
+        "Seedling": 4,
+        "Juvenile": 2
+      },
+      "naupakaStats": {
+        "born": 0,
+        "died": 0,
+        "failed": 0,
+        "fruit": 0,
+        "capHits": 0
+      },
+      "nutrientError": -4.911271389573812e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 10,
+      "palms": 5420,
+      "nuts": 544,
+      "crabs": 6,
+      "naupaka": 2278,
+      "seeds": 115,
+      "stages": {
+        "Mature shrub": 1128,
+        "Old shrub": 212,
+        "Juvenile": 769,
+        "Seedling": 169
+      },
+      "naupakaStats": {
+        "born": 1528,
+        "died": 99,
+        "failed": 1185,
+        "fruit": 2828,
+        "capHits": 57290
+      },
+      "nutrientError": -5.638867150992155e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 20,
+      "palms": 4542,
+      "nuts": 1409,
+      "crabs": 7,
+      "naupaka": 1832,
+      "seeds": 530,
+      "stages": {
+        "Mature shrub": 981,
+        "Old shrub": 186,
+        "Juvenile": 401,
+        "Seedling": 264
+      },
+      "naupakaStats": {
+        "born": 1834,
+        "died": 851,
+        "failed": 2835,
+        "fruit": 5199,
+        "capHits": 132894
+      },
+      "nutrientError": -7.09405867382884e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 30,
+      "palms": 4456,
+      "nuts": 1467,
+      "crabs": 49,
+      "naupaka": 2120,
+      "seeds": 259,
+      "stages": {
+        "Old shrub": 806,
+        "Juvenile": 678,
+        "Mature shrub": 167,
+        "Seedling": 469
+      },
+      "naupakaStats": {
+        "born": 2821,
+        "died": 1550,
+        "failed": 5626,
+        "fruit": 8706,
+        "capHits": 184954
+      },
+      "nutrientError": -4.765752237290144e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 40,
+      "palms": 4399,
+      "nuts": 1501,
+      "crabs": 112,
+      "naupaka": 1919,
+      "seeds": 449,
+      "stages": {
+        "Old shrub": 19,
+        "Juvenile": 716,
+        "Mature shrub": 849,
+        "Seedling": 335
+      },
+      "naupakaStats": {
+        "born": 3728,
+        "died": 2658,
+        "failed": 8786,
+        "fruit": 12963,
+        "capHits": 213854
+      },
+      "nutrientError": -5.711626727133989e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 50,
+      "palms": 4496,
+      "nuts": 1377,
+      "crabs": 198,
+      "naupaka": 1916,
+      "seeds": 452,
+      "stages": {
+        "Old shrub": 308,
+        "Juvenile": 473,
+        "Mature shrub": 833,
+        "Seedling": 302
+      },
+      "naupakaStats": {
+        "born": 4081,
+        "died": 3014,
+        "failed": 11646,
+        "fruit": 16179,
+        "capHits": 269943
+      },
+      "nutrientError": -5.966285243630409e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 60,
+      "palms": 4490,
+      "nuts": 1404,
+      "crabs": 192,
+      "naupaka": 2070,
+      "seeds": 307,
+      "stages": {
+        "Old shrub": 475,
+        "Juvenile": 909,
+        "Mature shrub": 266,
+        "Seedling": 420
+      },
+      "naupakaStats": {
+        "born": 5144,
+        "died": 3923,
+        "failed": 14126,
+        "fruit": 19577,
+        "capHits": 319197
+      },
+      "nutrientError": -2.473825588822365e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 70,
+      "palms": 5367,
+      "nuts": 584,
+      "crabs": 46,
+      "naupaka": 2054,
+      "seeds": 326,
+      "stages": {
+        "Old shrub": 67,
+        "Juvenile": 749,
+        "Mature shrub": 954,
+        "Seedling": 284
+      },
+      "naupakaStats": {
+        "born": 5983,
+        "died": 4778,
+        "failed": 16090,
+        "fruit": 22399,
+        "capHits": 360506
+      },
+      "nutrientError": -5.20230969414115e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 80,
+      "palms": 5016,
+      "nuts": 922,
+      "crabs": 19,
+      "naupaka": 1906,
+      "seeds": 456,
+      "stages": {
+        "Old shrub": 252,
+        "Juvenile": 464,
+        "Mature shrub": 891,
+        "Seedling": 299
+      },
+      "naupakaStats": {
+        "born": 6383,
+        "died": 5326,
+        "failed": 18538,
+        "fruit": 25377,
+        "capHits": 423044
+      },
+      "nutrientError": -4.511093720793724e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 90,
+      "palms": 5433,
+      "nuts": 533,
+      "crabs": 5,
+      "naupaka": 2067,
+      "seeds": 301,
+      "stages": {
+        "Old shrub": 398,
+        "Juvenile": 870,
+        "Mature shrub": 391,
+        "Seedling": 408
+      },
+      "naupakaStats": {
+        "born": 7447,
+        "died": 6229,
+        "failed": 20815,
+        "fruit": 28563,
+        "capHits": 475845
+      },
+      "nutrientError": -3.5288394428789616e-10,
+      "minimumMineral": 0
+    },
+    {
+      "year": 100,
+      "palms": 5115,
+      "nuts": 829,
+      "crabs": 52,
+      "naupaka": 1925,
+      "seeds": 451,
+      "stages": {
+        "Old shrub": 75,
+        "Juvenile": 720,
+        "Mature shrub": 853,
+        "Seedling": 277
+      },
+      "naupakaStats": {
+        "born": 8149,
+        "died": 7073,
+        "failed": 22971,
+        "fruit": 31571,
+        "capHits": 518205
+      },
+      "nutrientError": -4.220055416226387e-10,
+      "minimumMineral": 0
+    }
+  ]
+}

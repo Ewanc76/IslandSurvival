@@ -23,3 +23,32 @@ test('canopy light follows rendered branch clusters and permits overtopping',()=
  const recruit={id:-1,x:darkest.x,z:darkest.z,growth:0,phase:0};assert(w.competition(recruit)<.3);
  const openMeta={...meta,vegetation:meta.vegetation.filter(p=>p.type!=='pisonia')},open=createLivingWorld(openMeta,heights);assert(w.competition(recruit)<open.competition(recruit));
 });
+
+import {Grove} from '../ecology/ecology.js';
+import {installNaupaka,NAUPAKA_RULES,naupakaStage} from '../ecology/naupaka.js';
+import {createFoliageLOD} from './foliage-lod.js';
+import {createNaupakaGeometry} from './naupaka-visuals.js';
+function emptyNaupakaWorld(){const w=new Grove(731,'crabFree');w.config.decay=0;installNaupaka(w);return w;}
+test('naupaka matures, fruits, germinates and recycles expired seeds and old shrubs',()=>{
+ const w=emptyNaupakaWorld(),p=w.addNaupaka(0,0,60,24);p.fruitClock=5;w.step();assert.equal(w.naupakaStats.fruit,3);assert.equal(w.naupakaSeeds.length,3);assert.equal(naupakaStage(p),'Mature shrub');
+ w.advance(60);assert(w.naupakaStats.born>0);assert(Math.abs(w.summary().total-w.imported)<1e-8);
+ const expiring=w.addNaupakaSeed(1000,1000);expiring.age=NAUPAKA_RULES.seedExpiry-1;const exported=w.exported;w.step();assert(w.exported>=exported+expiring.nutrient-1e-10);assert(w.naupakaStats.failed>0);
+ const old=w.addNaupaka(15,0,NAUPAKA_RULES.lifespan,48),cell=w.soilAt(old.x,old.z),organic=cell.organic;w.step();assert(!w.naupaka.some(q=>q.id===old.id));assert(cell.organic>organic);assert(Math.abs(w.summary().total-w.imported)<1e-8);
+});
+test('palms and naupaka share scarce mineral uptake in proportion to simultaneous demand',()=>{
+ const w=emptyNaupakaWorld(),p=w.addPalm(0,0,12),n=w.addNaupaka(0,0,12,12),cell=w.soilAt(0,0);const removed=cell.mineral-.001;cell.mineral=.001;w.exported+=removed;
+ let wants;const request=w.additionalPlantDemand;w.additionalPlantDemand=(r,d)=>{request(r,d);wants=[r.get(p.id),r.get(n.id)];};const before=[p.nutrient,n.nutrient];w.step();
+ const palmUptake=p.nutrient-before[0]+.0008+Math.min(1,12/84)*.0012,naupakaUptake=n.nutrient-before[1]+.0002+.0006*(.08+.92*12/48);
+ assert(palmUptake>0&&naupakaUptake>0);assert(Math.abs(palmUptake/naupakaUptake-wants[0]/wants[1])<1e-8);assert(Math.abs(palmUptake+naupakaUptake-.001)<1e-10);assert(cell.mineral>=0);assert(Math.abs(w.summary().total-w.imported)<1e-8);
+});
+test('naupaka seed replacement respects the population limit and shaded recruits decline',()=>{
+ const w=emptyNaupakaWorld();for(let i=0;i<NAUPAKA_RULES.capacity;i++)w.addNaupakaSeed(0,0);assert.equal(w.addNaupakaSeed(0,0),null);w.advance(18);assert(w.naupakaStats.born>0);assert(w.naupaka.length+w.naupakaSeeds.length<=NAUPAKA_RULES.capacity);assert(Math.abs(w.summary().total-w.imported)<1e-7);
+ const shaded=emptyNaupakaWorld();shaded.canopyLightAt=()=>.005;const p=shaded.addNaupaka(0,0,0,0);shaded.advance(130);assert(!shaded.naupaka.some(q=>q.id===p.id));assert.equal(shaded.naupakaStats.died,1);assert(Math.abs(shaded.summary().total-shaded.imported)<1e-8);
+});
+test('shoreline shrub sites belong to finite living naupaka with progressively cheaper LODs',()=>{
+ const w=createLivingWorld(meta,heights),sites=meta.vegetation.filter(p=>p.type==='shrub'&&w.habitat(p.x,p.z));assert(w.naupaka.length>=sites.length);for(const site of sites)assert(w.naupaka.some(p=>p.x===site.x&&p.z===site.z));
+ const ids=[...w.plants,...w.nuts,...w.crabs,...w.naupaka,...w.naupakaSeeds].map(p=>p.id);assert.equal(new Set(ids).size,ids.length);
+ const foliage=createFoliageLOD(new THREE.Group(),meta,()=>{throw Error('static shrub must not be built')},()=>new THREE.PlaneGeometry());assert(!foliage.batches.some(b=>b.rows.some(p=>p.type==='shrub')));
+ const recruit=createNaupakaGeometry(0,true);assert(recruit.attributes.position.count<createNaupakaGeometry(0).attributes.position.count);recruit.dispose();
+ const geos=[0,1,2].map(level=>createNaupakaGeometry(level));assert(geos[0].attributes.position.count>geos[1].attributes.position.count);assert(geos[1].attributes.position.count>geos[2].attributes.position.count);for(const g of geos){for(const x of g.attributes.normal.array)assert(Number.isFinite(x));g.dispose();}
+});

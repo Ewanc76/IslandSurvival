@@ -1,3 +1,4 @@
+import {installNaupaka} from '../ecology/naupaka.js';
 import {createCanopyLight} from './canopy.js';
 import {palmCrownHeight,palmFrame} from './palm-frame.js';
 import {Grove} from '../ecology/ecology.js';
@@ -30,5 +31,10 @@ export function createLivingWorld(meta,heights){
  w.competition=p=>{const g=Math.max(0,p.growth||0),h=palmCrownHeight(g,w.height(p)),top=palmFrame(p.x,p.z,h,p.phase||0),ground=w.heightAt(p.x,p.z)||0;
   return Math.max(.005,baseCompetition(p)*canopyLight(top.x,top.z,ground+top.y+.3));
  };
+ w.understoryPalmLight=p=>baseCompetition({...p,growth:0});
+ installNaupaka(w,meta.vegetation.filter(p=>p.type==='shrub'));
+ // A few explicitly initialized recruits make early growth visible near the starting shore.
+ const nearest=w.naupaka.slice().sort((a,b)=>Math.hypot(a.x-meta.spawn[0],a.z-meta.spawn[2])-Math.hypot(b.x-meta.spawn[0],b.z-meta.spawn[2]));
+ for(let i=0;i<6&&i<nearest.length;i++){const p=nearest[i];w.addNaupaka(p.x+2,p.z+1,[0,4,12][i%3],[0,4,12][i%3]);}
  w.recordPatchChanges();w.firstPalmArrival=[0];w.history=[w.summary()];return w;
 }
